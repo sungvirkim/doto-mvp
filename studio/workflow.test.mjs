@@ -23,9 +23,14 @@ test('a client requests two estimates, answers a question and selects one artist
   const a=visitor(), b=visitor(), client=visitor(), stranger=visitor();
   const product={artist:'테스트 작가',title:'버추얼 얼굴 커스텀',desc:'기존 모델 얼굴 커스텀과 VRM 세팅',base:200000,option:'표정',extra:20000,days:5,start:'',recommend:true,direct:true};
   const p=(await a('product',product)).id, other=(await b('product',product)).id;
-  const payload={ids:[p,other],description:'첫 방송용 아바타',quantity:{[p]:2},estimates:{[p]:240000,[other]:200000},deadline:'2027-05-01',budget:300000};
+  const image='data:image/png;base64,iVBORw0KGgo=';
+  const payload={ids:[p,other],description:'첫 방송용 아바타',details:'제작 방식 · 얼굴 성형',img:image,moreImages:[image],quantity:{[p]:2},estimates:{[p]:240000,[other]:200000},deadline:'2027-05-01',budget:300000};
   await client('request',{...payload,estimates:{}},409);
   const {id}=await client('request',payload);
+  const received=(await a('state')).projects[0];
+  assert.equal(received.details,payload.details);
+  assert.deepEqual(received.moreImages,[image]);
+  await client('request',{...payload,moreImages:[image,image,image]},400);
   const act=(action,extra={})=>({id,product:p,action,...extra});
   assert.equal((await a('state')).projects[0].quotes.length,1);
   assert.equal((await stranger('state')).projects.length,0);
@@ -47,5 +52,5 @@ test('a client requests two estimates, answers a question and selects one artist
   assert.equal(saved.amount,250000);
   assert.deepEqual(saved.lines.map(line=>line.count),[2,1]);
   await client('draft',{mode:'request',description:'테스트',approved:true},503);
-  for(const path of ['/','/studio','/studio.js','/studio.css']) assert.equal((await fetch(origin+path)).status,200);
+  for(const path of ['/','/studio','/studio.js','/studio.css','/consult.js','/doto.svg']) assert.equal((await fetch(origin+path)).status,200);
 });

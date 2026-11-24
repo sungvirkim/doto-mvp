@@ -19,8 +19,10 @@ function date(v) {
   return v;
 }
 const examples = [
-  {id:'demo-face',artist:'여울 스튜디오',title:'원화 기반 얼굴 커스텀',desc:'의뢰인의 정면 원화를 기준으로 기존 베이스의 눈매와 얼굴형을 조정합니다. 기본 표정 2종과 방송용 VRM을 포함합니다.',base:240000,extra:20000,option:'특수 표정',days:7},
-  {id:'demo-debut',artist:'오후 작업실',title:'첫 방송 아바타 세팅',desc:'기존 베이스를 활용한 외형 커스텀과 VSeeFace 초기 세팅을 함께 진행합니다. 기본 의상 1벌과 테스트를 포함합니다.',base:280000,extra:15000,option:'추가 표정',days:5}
+  {methods:['얼굴 성형'],id:'demo-face',artist:'여울 스튜디오',title:'원화 기반 얼굴 커스텀',desc:'의뢰인의 정면 원화를 기준으로 기존 베이스의 눈매와 얼굴형을 조정합니다. 기본 표정 2종과 방송용 VRM을 포함합니다.',base:240000,extra:20000,option:'특수 표정',days:7},
+  {methods:['아바타 커스텀'],id:'demo-debut',artist:'오후 작업실',title:'첫 방송 아바타 세팅',desc:'기존 베이스를 활용한 외형 커스텀과 VSeeFace 초기 세팅을 함께 진행합니다. 기본 의상 1벌과 테스트를 포함합니다.',base:280000,extra:15000,option:'추가 표정',days:5},
+  {id:'demo-original',artist:'소담 스튜디오',title:'원화 기반 오리지널 캐릭터',desc:'원화와 방송 환경을 확인하고 얼굴과 전신을 새로 제작합니다. 상세 사양은 의뢰서를 확인한 뒤 조율해요.',methods:['오리지널 전신 제작'],base:1450000,days:45,options:[{name:'특수표정',price:35000},{name:'ARKit 표정 세팅',price:180000}]},
+  {id:'demo-head',artist:'윤슬 작업실',title:'오리지널 얼굴 제작',desc:'기존 몸에 맞춰 얼굴을 제작하고 방송용 파일로 세팅합니다.',methods:['오리지널 얼굴 제작'],base:650000,days:21,options:[{name:'특수표정',price:25000}]}
 ].map(p=>({...p,recommend:true,direct:true,start:new Date().toISOString().slice(0,10),img:'',sample:true}));
 function optionsFor(product) {
   return product.options ?? (product.option ? [{name:product.option,price:product.extra}] : []);
@@ -64,7 +66,7 @@ async function handle(req,env) {
   if(!user)fail(401,'로그인 후 이용해 주세요.');
   if(req.headers.get('origin') && req.headers.get('origin')!==new URL(req.url).origin)fail(403,'요청 출처를 확인해 주세요.');
   if(!req.headers.get('content-type')?.includes('application/json'))fail(415,'JSON 요청이 필요해요.');
-  const raw=await req.text(); if(raw.length>1600000)fail(413,'첨부 용량을 줄여 주세요.');
+  const raw=await req.text(); if(raw.length>4300000)fail(413,'첨부 용량을 줄여 주세요.');
   let d;try{d=JSON.parse(raw)}catch{fail(400,'내용을 확인해 주세요.')}
   if(!d||typeof d!=='object')fail(400,'내용을 확인해 주세요.');
   if(path==='/api/draft'){const {status,body}=await generateDraft(d,env.GEMINI_API_KEY);return json(body,status);}
@@ -72,7 +74,9 @@ async function handle(req,env) {
     const id=d.id||crypto.randomUUID();
     const old=d.id?await bucket.get('products/'+id):null;
     if(d.id&&(!old||(await old.json()).owner!==user))fail(403,'내 상품만 수정할 수 있어요.');
-    const p={id,owner:user,artist:str(d.artist,60),title:str(d.title,100),desc:str(d.desc),base:money(d.base),option:str(d.option,60),extra:money(d.extra??0),options:readOptions(d),days:Number(d.days),start:date(d.start),recommend:d.recommend===true,direct:d.direct===true,img:photo(d.img)};
+    const offered=d.methods??[];
+    if(!Array.isArray(offered)||offered.length>4||offered.some(m=>!['아바타 커스텀','얼굴 성형','오리지널 얼굴 제작','오리지널 전신 제작'].includes(m)))fail(400,'제공하는 제작 방식을 확인해 주세요.');
+    const p={methods:[...new Set(offered)],id,owner:user,artist:str(d.artist,60),title:str(d.title,100),desc:str(d.desc),base:money(d.base),option:str(d.option,60),extra:money(d.extra??0),options:readOptions(d),days:Number(d.days),start:date(d.start),recommend:d.recommend===true,direct:d.direct===true,img:photo(d.img)};
     if(!p.artist||!p.title||!p.desc||!Number.isInteger(p.days)||p.days<1||p.days>730)fail(400,'작가명·상품명·작업 설명·기간을 확인해 주세요.');
     if(!await bucket.put('products/'+id,JSON.stringify(p),old?{onlyIf:{etagMatches:old.etag}}:{}))fail(409,'상품이 변경됐어요. 다시 열어주세요.');
     return json({id});
@@ -95,7 +99,9 @@ async function handle(req,env) {
       quotes.push({product:id,owner:p.sample?user:p.owner,sample:!!p.sample,artist:p.artist,title:p.title,lines,base:p.base,option:p.option,count,extra:p.extra,days:p.days,start:p.start,amount:expected,status:'요청됨',messages:[]});
     }
     const id=crypto.randomUUID();
-    const project={id,created:new Date().toISOString(),client:user,description:str(d.description,4000),budget:d.budget==null?null:money(d.budget),deadline:date(d.deadline),deadlineFirm:!!d.deadlineFirm,img:photo(d.img),quotes};
+    const moreImages=d.moreImages??[];
+    if(!Array.isArray(moreImages)||moreImages.length>2||moreImages.some(img=>!img)||(moreImages.length&&!d.img))fail(400,'이미지는 총 3장까지 첨부할 수 있어요.');
+    const project={details:str(d.details,1800),moreImages:moreImages.map(photo),id,created:new Date().toISOString(),client:user,description:str(d.description,4000),budget:d.budget==null?null:money(d.budget),deadline:date(d.deadline),deadlineFirm:!!d.deadlineFirm,img:photo(d.img),quotes};
     await bucket.put('projects/'+id,JSON.stringify(project));return json({id});
   }
   if(path==='/api/action'){

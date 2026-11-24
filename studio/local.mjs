@@ -36,7 +36,7 @@ export async function startLocal({port=4173, dbDir=fileURLToPath(new URL('../.do
       const headers=new Headers({'oai-authenticated-user-id':uid});
       for(const name of ['content-type','origin']) if(incoming.headers[name])headers.set(name,incoming.headers[name]);
       let chunks=[],size=0;
-      for await(const chunk of incoming){size+=chunk.length;if(size>1650000){outgoing.writeHead(413);outgoing.end();return;}chunks.push(chunk);}
+      for await(const chunk of incoming){size+=chunk.length;if(size>4350000){outgoing.writeHead(413);outgoing.end();return;}chunks.push(chunk);}
       const req=new Request(origin+incoming.url,{method:incoming.method,headers,body:chunks.length?Buffer.concat(chunks):undefined});
       const result=await app.fetch(req,{BUCKET:bucket,GEMINI_API_KEY:key});
       const responseHeaders=Object.fromEntries(result.headers);
