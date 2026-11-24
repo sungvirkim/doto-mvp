@@ -1,0 +1,15 @@
+.gallery-caption{margin:0 0 23px}.artist-gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px 24px}
+.artist-tile{display:block;color:var(--ink);text-decoration:none;min-width:0}.portfolio-art{display:block;width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px}
+.artist-meta{display:flex;align-items:center;gap:8px;margin:12px 0 3px;font-size:14px}.artist-meta small{color:var(--muted);font-size:11px}
+.artist-tile h2{font-size:22px;margin:1px 0 5px}.artist-tile:hover h2{text-decoration:underline;text-decoration-color:var(--purple);text-underline-offset:4px}
+.artist-tile p{font-size:14px;margin:0 0 2px;color:var(--muted)}.grid article>.portfolio-art,.grid article>a>.portfolio-art{width:min(100%,420px);height:auto;max-height:420px;object-fit:contain;margin:10px auto 16px}
+.form-examples{margin:0 0 28px}.form-examples h2{font-size:20px;margin:0}.form-examples .mini{margin:5px 0 12px}.example-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.example-strip figure{margin:0;min-width:0}
+.example-strip figure img{border-radius:9px}.example-strip figcaption{padding:7px 1px}.example-strip figcaption b,.example-strip figcaption span,.example-strip figcaption small{display:block}.example-strip figcaption span,.example-strip figcaption small{color:var(--muted);font-size:13px}
+.form-examples details{margin-top:9px}.form-examples details[open] .example-strip{margin-top:12px}.form-examples summary,.gemini-box summary{color:var(--deep);cursor:pointer}
+.gemini-box{padding:15px 0;margin:13px 0;border-block:1px solid var(--line,#e3e2e9)}.gemini-box p{margin:.45rem 0}.gemini-box details>label{max-width:500px}.gemini-box [data-connect]{margin-top:5px}.gemini-box [data-connection-message]:empty{display:none}
+@media(max-width:700px){.artist-gallery{grid-template-columns:repeat(2,minmax(0,1fr));gap:21px 13px}.artist-tile h2{font-size:18px}.example-strip{gap:8px}.example-strip figcaption small{font-size:11px}.example-strip figcaption{font-size:13px}.example-strip figcaption span{font-size:12px}}
+@media(max-width:540px){header{flex-wrap:wrap;gap:1px;padding:6px 14px}header nav{overflow-x:auto;width:100%;justify-content:space-between}header nav a{white-space:nowrap;font-size:12px;padding:3px 4px}}
+.product-layout{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:32px;align-items:start}
+.product-layout .example-strip{grid-template-columns:repeat(2,minmax(0,1fr))}
+.product-layout .form-examples{padding-top:10px}
+@media(max-width:800px){.product-layout{grid-template-columns:1fr;gap:16px}.product-layout .example-strip{grid-template-columns:repeat(3,minmax(0,1fr))}}

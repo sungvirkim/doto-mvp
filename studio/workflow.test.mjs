@@ -52,5 +52,31 @@ test('a client requests two estimates, answers a question and selects one artist
   assert.equal(saved.amount,250000);
   assert.deepEqual(saved.lines.map(line=>line.count),[2,1]);
   await client('draft',{mode:'request',description:'테스트',approved:true},503);
+  const samples=(await client('state')).products.filter(p=>p.sample);
+  assert.equal(samples.length,9);
+  assert.equal(new Set(samples.map(p=>p.img)).size,9);
+  assert.ok(samples.filter(p=>p.methods.includes('오리지널 전신 제작')).length>=3);
+  for(const p of samples){
+    const res=await fetch(origin+p.img);
+    assert.equal(res.headers.get('content-type'),'image/webp');
+    const bytes=Buffer.from(await res.arrayBuffer());
+    assert.equal(bytes.subarray(0,4).toString(),'RIFF');
+    assert.equal(bytes.subarray(8,12).toString(),'WEBP');
+  }
+  await client('gemini-check',{},400);
   for(const path of ['/','/studio','/studio.js','/studio.css','/consult.js','/doto.svg']) assert.equal((await fetch(origin+path)).status,200);
+});
+
+test('a personal Gemini key is checked against the draft model without inviting a generation', async t=>{
+  const {verifyGeminiKey,geminiModelUrl}=await import('../api/draft.mjs');
+  const mockKey='key-for-automated-test';
+  const provider=t.mock.method(globalThis,'fetch',async (url,options)=>{
+    assert.equal(url,geminiModelUrl);
+    assert.equal(options.headers['x-goog-api-key'],mockKey);
+    assert.equal(options.body,undefined);
+    return Response.json({supportedGenerationMethods:['generateContent']});
+  });
+  assert.deepEqual(await verifyGeminiKey(mockKey),{status:200,body:{connected:true}});
+  provider.mock.mockImplementation(async()=>new Response('',{status:403}));
+  assert.equal((await verifyGeminiKey(mockKey)).status,400);
 });

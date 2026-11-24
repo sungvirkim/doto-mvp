@@ -1,5 +1,6 @@
 import { assets } from './assets.mjs';
-import { generateDraft } from '../api/draft.mjs';
+import { generateDraft, verifyGeminiKey } from '../api/draft.mjs';
+import { sampleProducts } from './samples.mjs';
 
 const fail = (status, message) => { throw Object.assign(new Error(message), {status}); };
 const json = (body, status=200) => Response.json(body, {status, headers:{'Cache-Control':'no-store'}});
@@ -18,12 +19,6 @@ function date(v) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(v) || !Number.isFinite(Date.parse(v)) || new Date(v).toISOString().slice(0,10)!==v) fail(400,'날짜를 확인해 주세요.');
   return v;
 }
-const examples = [
-  {methods:['얼굴 성형'],id:'demo-face',artist:'여울 스튜디오',title:'원화 기반 얼굴 커스텀',desc:'의뢰인의 정면 원화를 기준으로 기존 베이스의 눈매와 얼굴형을 조정합니다. 기본 표정 2종과 방송용 VRM을 포함합니다.',base:240000,extra:20000,option:'특수 표정',days:7},
-  {methods:['아바타 커스텀'],id:'demo-debut',artist:'오후 작업실',title:'첫 방송 아바타 세팅',desc:'기존 베이스를 활용한 외형 커스텀과 VSeeFace 초기 세팅을 함께 진행합니다. 기본 의상 1벌과 테스트를 포함합니다.',base:280000,extra:15000,option:'추가 표정',days:5},
-  {id:'demo-original',artist:'소담 스튜디오',title:'원화 기반 오리지널 캐릭터',desc:'원화와 방송 환경을 확인하고 얼굴과 전신을 새로 제작합니다. 상세 사양은 의뢰서를 확인한 뒤 조율해요.',methods:['오리지널 전신 제작'],base:1450000,days:45,options:[{name:'특수표정',price:35000},{name:'ARKit 표정 세팅',price:180000}]},
-  {id:'demo-head',artist:'윤슬 작업실',title:'오리지널 얼굴 제작',desc:'기존 몸에 맞춰 얼굴을 제작하고 방송용 파일로 세팅합니다.',methods:['오리지널 얼굴 제작'],base:650000,days:21,options:[{name:'특수표정',price:25000}]}
-].map(p=>({...p,recommend:true,direct:true,start:new Date().toISOString().slice(0,10),img:'',sample:true}));
 function optionsFor(product) {
   return product.options ?? (product.option ? [{name:product.option,price:product.extra}] : []);
 }
@@ -51,11 +46,17 @@ function quoteView(project,user) {
 }
 async function handle(req,env) {
   const path=new URL(req.url).pathname;
-  if(assets[path] && req.method==='GET')return new Response(assets[path][1],{headers:{'Content-Type':assets[path][0],'X-Content-Type-Options':'nosniff'}});
+  if(Object.hasOwn(assets,path) && req.method==='GET'){
+    const [type,content]=assets[path];
+    const binary=type==='image/webp';
+    const body=binary?Uint8Array.from(atob(content),c=>c.charCodeAt(0)):content;
+    return new Response(body,{headers:{'Content-Type':type,'X-Content-Type-Options':'nosniff',...(binary?{'Cache-Control':'private, max-age=86400'}:{})}});
+  }
   if(!path.startsWith('/api/'))return new Response('Not found',{status:404});
   const user=req.headers.get('oai-authenticated-user-id');
   const bucket=env.BUCKET;
   if (!bucket) fail(503,'저장소 연결이 필요해요.');
+  const examples=sampleProducts();
   const readProduct=async id=>examples.find(p=>p.id===id) || await (await bucket.get('products/'+id))?.json();
   if(req.method==='GET' && path==='/api/state') {
     const products=[...examples,...await records(bucket,'products/')];
@@ -69,7 +70,12 @@ async function handle(req,env) {
   const raw=await req.text(); if(raw.length>4300000)fail(413,'첨부 용량을 줄여 주세요.');
   let d;try{d=JSON.parse(raw)}catch{fail(400,'내용을 확인해 주세요.')}
   if(!d||typeof d!=='object')fail(400,'내용을 확인해 주세요.');
-  if(path==='/api/draft'){const {status,body}=await generateDraft(d,env.GEMINI_API_KEY);return json(body,status);}
+  if(path==='/api/gemini-check'||path==='/api/draft') {
+    const personal=req.headers.get('x-doto-gemini-key')||'';
+    if(personal&&!/^[A-Za-z0-9._-]{12,512}$/.test(personal))fail(400,'복사한 API 키를 확인해 주세요.');
+    const {status,body}=path==='/api/gemini-check'?await verifyGeminiKey(personal):await generateDraft(d,env.GEMINI_API_KEY||personal);
+    return json(body,status);
+  }
   if(path==='/api/product'){
     const id=d.id||crypto.randomUUID();
     const old=d.id?await bucket.get('products/'+id):null;

@@ -13,6 +13,23 @@ export default async function draft(req, res) {
   const result = await generateDraft(req.body, process.env.GEMINI_API_KEY);
   return res.status(result.status).json(result.body);
 }
+export const geminiModelUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite';
+
+export async function verifyGeminiKey(key) {
+  if (!key) return {status:400,body:{error:'API 키를 입력해 주세요.'}};
+  try {
+    const response=await fetch(geminiModelUrl,{headers:{'x-goog-api-key':key},signal:AbortSignal.timeout(10000)});
+    if(response.status===429) return {status:429,body:{error:'Google 요청 한도에 도달했어요. 잠시 후 다시 시도해 주세요.'}};
+    if(response.status===400||response.status===401||response.status===403) return {status:400,body:{error:'키 또는 Gemini API 사용 권한을 확인해 주세요.'}};
+    if(!response.ok) throw Error();
+    const model=await response.json();
+    if(!model.supportedGenerationMethods?.includes('generateContent'))throw Error();
+    return {status:200,body:{connected:true}};
+  } catch {
+    return {status:502,body:{error:'Google에서 초안용 모델을 확인하지 못했어요. 잠시 후 다시 시도해 주세요.'}};
+  }
+}
+
 export async function generateDraft(input, key) {
   const { mode, description, image, approved } = input ?? {};
   if (!Object.hasOwn(instructions, mode) || approved !== true || typeof description !== 'string' || (!description.trim() && !(mode==='portfolio' && image)) || description.length > 6000)
@@ -26,7 +43,7 @@ export async function generateDraft(input, key) {
 
   if (!key) return { status: 503, body: { error: 'Gemini 키 설정 후 초안을 생성할 수 있어요.' } };
   try {
-    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent', {
+    const response = await fetch(geminiModelUrl+':generateContent', {
       method: 'POST',
       headers: { 'x-goog-api-key': key, 'Content-Type': 'application/json' },
       signal: AbortSignal.timeout(30000),
@@ -44,6 +61,7 @@ export async function generateDraft(input, key) {
       })
     });
     if (response.status === 429) return { status: 429, body: { error: 'Gemini 사용 한도에 도달했어요. 잠시 후 다시 시도해 주세요.' } };
+    if ([400,401,403].includes(response.status)) return {status:400,body:{error:'Google에서 요청을 거절했어요. 키 권한과 첨부 자료를 확인해 주세요.'}};
     if (!response.ok) throw new Error('provider');
     const result = await response.json();
     const candidate = result.candidates?.[0];

@@ -34,7 +34,7 @@ export async function startLocal({port=4173, dbDir=fileURLToPath(new URL('../.do
       const tokens=(incoming.headers.cookie||'').match(/(?:^|;\s*)doto_session=([a-f0-9-]{36})(?:;|$)/);
       const uid=tokens?.[1]||randomUUID();
       const headers=new Headers({'oai-authenticated-user-id':uid});
-      for(const name of ['content-type','origin']) if(incoming.headers[name])headers.set(name,incoming.headers[name]);
+      for(const name of ['content-type','origin','x-doto-gemini-key']) if(incoming.headers[name])headers.set(name,incoming.headers[name]);
       let chunks=[],size=0;
       for await(const chunk of incoming){size+=chunk.length;if(size>4350000){outgoing.writeHead(413);outgoing.end();return;}chunks.push(chunk);}
       const req=new Request(origin+incoming.url,{method:incoming.method,headers,body:chunks.length?Buffer.concat(chunks):undefined});
