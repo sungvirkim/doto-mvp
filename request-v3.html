@@ -419,7 +419,8 @@ footer { padding-block: 0 36px; font-size: 12.5px; color: #C8BFFF; background: v
   <div class="wrap nav-in">
     <a class="logo" href="#top" aria-label="도토 처음으로"><svg aria-hidden="true"><use href="#doto"/></svg>doto<span>.</span></a>
     <div class="nav-right">
-      <a class="nav-creator" href="#creator">작가용 도토 →</a>
+      <a class="nav-creator" href="/studio#brief">제작 의뢰하기</a>
+      <a class="nav-creator" href="/studio#seller">작가용 도토 →</a>
     </div>
   </div>
 </header>
@@ -629,8 +630,8 @@ footer { padding-block: 0 36px; font-size: 12.5px; color: #C8BFFF; background: v
 
 <footer>
   <div class="wrap foot">
-    <span><b class="wm">doto<span>.</span></b> 아이디어와 제작자 사이 · <a href="#creator" id="creator">작가이신가요? 작가용 도토 →</a></span>
-    <span>/request 시안 v3 · 2026.10.30 · 카피·금액·정책은 검증 전 기획안 · 제작자·견적·캐릭터는 예시</span>
+    <span><b class="wm">doto<span>.</span></b> 아이디어와 제작자 사이 · <a href="/studio#seller" id="creator">작가이신가요? 작가용 도토 →</a></span>
+    <span>소개 페이지의 제작자·견적·캐릭터는 이용 예시입니다.</span>
   </div>
 </footer>
 
@@ -1008,7 +1009,7 @@ footer { padding-block: 0 36px; font-size: 12.5px; color: #C8BFFF; background: v
 
   /* ── 04 마지막 CTA: 시안이라 실제 연결 없음 (화면 이동 없이 안내 한 줄만) ── */
   $("ctaBtn").addEventListener("click", () => {
-    $("ctaNote").textContent = "시안이라 아직 실제 상담으로 연결되지 않아요.";
+    location.assign("/studio#brief");
     track("cta_clicked", { cta: "project_start" }, false);
   });
 

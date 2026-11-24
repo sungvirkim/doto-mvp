@@ -1,2 +1,6 @@
 .DS_Store
 secret.txt
+
+dist/
+.doto-local/
+.env*

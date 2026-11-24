@@ -1,0 +1,13 @@
+{
+  "name": "doto-mvp",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node studio/build.mjs",
+    "start": "node studio/local.mjs",
+    "test": "node --test studio/workflow.test.mjs"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}
