@@ -1,0 +1,1585 @@
+<title>도토 의뢰인 랜딩 V2.4</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@500;700;800;900&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* V2.4: 오프닝(V2.2 그대로) → 상담 시연(디자인 질문 3개가 세로로 쌓이고 핵심 단어가 요청서로 이동) → 정돈된 요청서 초안
+   → 대표 캐릭터 단독 → 전체 쇼케이스 → 첫 질문 체험·데모 상담·견적·정리(V2.3 그대로) → 매칭 두 경로.
+   실제 AI·견적·매칭은 연결하지 않은 시연. V2.2 토큰·마스코트 재사용. PC 기준, 단일 라이트 테마. */
+:root {
+  --purple: #5848F5;
+  --purple-deep: #3E31D6;
+  --purple-soft: #ECEAFF;
+  --lime: #C7F46B;
+  --lime-soft: #EEFAD3;
+  --pink: #FF79B3;
+  --pink-soft: #FFE5F0;
+  --ink: #212033;
+  --muted: #66657F;
+  --line: #E2E1F2;
+  --bg: #F7F7FF;
+  --paper: #FFFFFF;
+  --f-display: "Gothic A1", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --f-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --r-m: 18px;
+  --r-l: 28px;
+  --nav-h: 64px;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font-family: var(--f-body); font-size: 16px; line-height: 1.6;
+  word-break: keep-all; overflow-x: hidden;
+}
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; letter-spacing: -0.02em; overflow-wrap: break-word; }
+p { margin: 0; }
+a { color: inherit; }
+button { font: inherit; }
+:focus-visible { outline: 3px solid var(--pink); outline-offset: 3px; border-radius: 6px; }
+
+.wrap {
+  max-width: 1180px; margin: 0 auto;
+  padding-left: max(20px, env(safe-area-inset-left, 0px));
+  padding-right: max(20px, env(safe-area-inset-right, 0px));
+}
+.eyebrow { font-family: var(--f-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.08em; color: var(--purple); }
+.sub { color: var(--muted); font-size: 17.5px; max-width: 28em; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-family: var(--f-display); font-weight: 800; font-size: 17px;
+  padding: 16px 26px; border-radius: 999px; border: 0; cursor: pointer;
+  text-decoration: none; transition: transform .15s ease, box-shadow .15s ease, opacity .2s;
+}
+.btn-primary { background: var(--purple); color: #fff; box-shadow: 0 6px 0 var(--purple-deep); }
+.btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 0 var(--purple-deep); }
+.btn-primary:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 2px 0 var(--purple-deep); }
+.btn:disabled { opacity: .35; cursor: not-allowed; }
+.btn-ghost { background: var(--paper); color: var(--ink); border: 2px solid var(--ink); padding: 12px 20px; font-size: 15px; }
+.btn-ghost:hover { background: var(--purple-soft); }
+.arrow { font-family: var(--f-mono); }
+
+.tag {
+  display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+  font-size: 11.5px; font-weight: 600; line-height: 1; padding: 5px 8px; border-radius: 999px;
+}
+.tag::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.tag-ok { background: var(--lime-soft); color: #4F7A00; }
+.tag-guess { background: var(--purple-soft); color: var(--purple-deep); }
+.tag-check { background: var(--pink-soft); color: #C12C6E; }
+.memo {
+  display: inline-block; font-family: var(--f-mono); font-size: 11px; font-weight: 600;
+  color: #C12C6E; border: 1.5px dashed var(--pink); border-radius: 6px; padding: 2px 7px;
+}
+
+/* 내비게이션: 상담 시작 CTA는 체험 구간에만 둔다 */
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 9; background: color-mix(in srgb, var(--bg) 90%, transparent); backdrop-filter: blur(10px); }
+.nav-in { display: flex; align-items: center; gap: 20px; height: var(--nav-h); }
+.logo { font-family: var(--f-display); font-weight: 900; font-size: 26px; letter-spacing: -0.04em; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+.logo span { color: var(--purple); }
+.logo svg { width: 28px; height: 28px; }
+.nav-right { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+.nav-creator { font-size: 13.5px; color: var(--muted); text-decoration: none; }
+
+/* ── S1 오프닝 (V2.2 그대로) ── */
+.stage { position: relative; height: calc(100vh - var(--nav-h) + 40vh); }
+.pin { position: sticky; top: calc(var(--nav-h) + env(safe-area-inset-top, 0px)); height: calc(100vh - var(--nav-h)); overflow: hidden; }
+.pin-grid { height: 100%; display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 40px; align-items: center; }
+.copy { display: grid; min-width: 0; }
+.copy > div { grid-area: 1 / 1; display: grid; gap: 20px; align-content: center; will-change: opacity, transform; }
+.copy h1 { font-size: clamp(32px, 4vw, 52px); font-weight: 900; line-height: 1.22; }
+.copy h2 { font-size: clamp(32px, 4vw, 52px); font-weight: 900; line-height: 1.22; }
+.copy h2 em, .copy h1 em, .sec-head h2 em, .hc-copy h2 em { font-style: normal; background: linear-gradient(transparent 62%, var(--lime) 62%, var(--lime) 92%, transparent 92%); }
+.terms-line { font-family: var(--f-display); font-weight: 800; font-size: clamp(18px, 1.8vw, 22px); color: var(--purple); }
+.count { display: inline-flex; align-items: baseline; gap: 8px; font-size: 14px; color: var(--muted); }
+.count b { font-family: var(--f-mono); font-size: 28px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.count.good b { color: var(--purple); }
+.scroll-hint { font-size: 13.5px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+.scroll-hint i { font-style: normal; font-family: var(--f-mono); animation: nudge 1.4s ease-in-out infinite; }
+.copy-b .row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.copy-b svg { width: 72px; height: 72px; flex: none; }
+
+.field { position: relative; height: min(620px, 88%); min-width: 0; }
+.pile { display: none; }
+.card {
+  position: absolute; left: 0; top: 0; transform-origin: 50% 50%; will-change: transform, opacity;
+  display: grid; gap: 1px; padding: 12px 16px 13px; border-radius: 16px; white-space: nowrap;
+  background: var(--paper); border: 2px solid var(--ink); box-shadow: 4px 4px 0 var(--ink);
+}
+.card b { font-family: var(--f-display); font-weight: 800; font-size: 19px; line-height: 1.25; }
+.card small { font-size: 12px; color: var(--muted); }
+.card.lime { background: var(--lime); }
+.card.pink { background: var(--pink); }
+.card.pink small { color: #5A1636; }
+.card.soft { background: var(--purple-soft); }
+.card.ink { background: var(--ink); color: #fff; box-shadow: 4px 4px 0 var(--purple); }
+.card.ink small { color: #B9B7D8; }
+
+.steps { position: absolute; inset: 0; margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; justify-content: center; gap: 14px; }
+.steps li { display: grid; gap: 7px; }
+.step-q { display: flex; align-items: center; gap: 10px; font-family: var(--f-display); font-weight: 800; font-size: 16px; }
+.step-q span { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-family: var(--f-mono); font-size: 12px; background: var(--ink); color: #fff; flex: none; }
+.slots { display: flex; flex-wrap: wrap; gap: 6px; padding-left: 36px; }
+.slot { display: inline-block; visibility: hidden; }
+
+.stage.static { height: auto; }
+.stage.static .pin { position: static; height: auto; overflow: visible; }
+.stage.static .pin-grid { height: auto; padding-block: 40px 24px; row-gap: 56px; grid-template-areas: "a pile" "b steps"; align-items: start; }
+.stage.static .copy, .stage.static .field { display: contents; }
+.stage.static .copy-a { grid-area: a; }
+.stage.static .copy-b { grid-area: b; }
+.stage.static .pile { grid-area: pile; display: flex; flex-wrap: wrap; gap: 10px 8px; justify-content: center; align-content: center; padding: 8px 4px; }
+.stage.static .steps { grid-area: steps; position: static; }
+.stage.static .card { position: relative; transform: rotate(var(--r)); animation: drop .45s cubic-bezier(.2, 1.4, .4, 1) both; animation-delay: var(--d); }
+.stage.static .slot { visibility: visible; font-size: 13px; font-weight: 600; padding: 5px 10px; border-radius: 999px; background: var(--paper); border: 1.5px solid var(--line); }
+.stage.static .scroll-hint { display: none; }
+.stage.static .card.m-hide { display: none; }
+
+/* ── S2 상담 시연 (V2.4): 대화가 아래로 쌓이는 일반 세로 스크롤. 고정 장면·큰 캐릭터 없음 ── */
+.col { max-width: 760px; margin: 0 auto; }
+.sec-head { display: grid; gap: 12px; justify-items: center; text-align: center; margin-bottom: 36px; }
+.sec-head h2 { font-size: clamp(30px, 3.6vw, 44px); font-weight: 900; line-height: 1.25; }
+.sec-head .sub { margin: 0 auto; }
+.demo-label { display: inline-flex; align-items: center; gap: 8px; font-family: var(--f-mono); font-size: 12px; font-weight: 600; background: var(--ink); color: #fff; border-radius: 999px; padding: 6px 12px; }
+.demo-label i { width: 8px; height: 8px; border-radius: 50%; background: var(--lime); }
+
+.demo2 { padding-block: 88px 8px; }
+.thread { display: grid; }
+.blk { margin-block: 14px; }
+.rv { opacity: 0; transform: translateY(14px); transition: opacity .3s ease, transform .3s ease; }
+.rv.in { opacity: 1; transform: none; }
+
+.say { display: flex; align-items: flex-end; gap: 10px; max-width: 90%; }
+.say svg { width: 44px; height: 44px; flex: none; }
+.bub { background: var(--paper); border: 2px solid var(--ink); border-radius: 18px 18px 18px 4px; padding: 11px 16px; display: grid; gap: 3px; }
+.bub b { font-family: var(--f-display); font-weight: 800; font-size: 18px; line-height: 1.45; }
+.bub span { font-size: 14.5px; color: var(--muted); }
+.me { display: flex; justify-content: flex-end; }
+.me p { max-width: 80%; background: var(--purple); color: #fff; border-radius: 18px 18px 4px 18px; padding: 11px 16px; font-size: 16.5px; font-weight: 500; }
+.me small { font-family: var(--f-mono); font-size: 10.5px; opacity: .75; margin-right: 6px; }
+.kw { display: inline-block; background: var(--lime); color: var(--ink); font-weight: 700; border-radius: 6px; padding: 0 6px; }
+
+.dstep { padding-block: 44px 28px; border-top: 1.5px dashed var(--line); }
+.step-n { font-family: var(--f-mono); font-size: 12px; font-weight: 600; color: var(--purple); letter-spacing: .04em; }
+.pics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-top: 22px; }
+.pic { margin: 0; display: grid; gap: 10px; transition: opacity .35s ease, filter .35s ease; }
+.pic-art { position: relative; aspect-ratio: 4 / 5; overflow: hidden; border: 2px solid var(--ink); border-radius: var(--r-m); background: radial-gradient(circle at 78% 16%, #fff 0 9%, transparent 10%), var(--purple-soft); transition: box-shadow .35s ease; }
+.pic-art svg { width: 100%; height: 100%; display: block; }
+.pic figcaption { display: grid; text-align: center; }
+.pic figcaption b { font-family: var(--f-display); font-weight: 800; font-size: 16.5px; }
+.pic figcaption span { font-size: 12.5px; color: var(--muted); }
+.pic-badge { position: absolute; top: 8px; right: 8px; font-family: var(--f-mono); font-size: 11.5px; font-weight: 600; background: var(--purple); color: #fff; border-radius: 99px; padding: 3px 9px; opacity: 0; transform: scale(.8); transition: opacity .3s, transform .3s; }
+.pics.picked .pic:not(.sel) { opacity: .4; filter: grayscale(.8); }
+.pics.picked .pic.sel .pic-art { box-shadow: 0 0 0 3px var(--purple), 6px 6px 0 3px var(--purple); }
+.pics.picked .pic.sel .pic-badge { opacity: 1; transform: none; }
+.pickline { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; font-size: 14.5px; color: var(--muted); }
+.pickline b { color: var(--ink); }
+
+.mini { background: var(--paper); border: 2px solid var(--ink); border-radius: var(--r-l); box-shadow: 6px 6px 0 var(--purple); padding: 16px 20px 18px; display: grid; gap: 10px; max-width: 620px; margin-inline: auto; width: 100%; }
+.mini-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.mini-head b { font-family: var(--f-display); font-weight: 800; font-size: 16px; }
+.mini-st { font-family: var(--f-mono); font-size: 11.5px; color: var(--purple); }
+.mini-ctx { font-size: 12.5px; color: var(--muted); }
+.mrows { display: grid; gap: 8px; }
+.mrow { display: grid; grid-template-columns: 128px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 12px; border: 1.5px dashed var(--line); transition: border-color .3s; }
+.mrow .k { font-size: 13px; font-weight: 600; color: var(--muted); display: inline-flex; align-items: center; gap: 4px; }
+.mrow .v { font-family: var(--f-display); font-weight: 800; font-size: 16px; line-height: 1.35; transition: opacity .2s; }
+.mrow .v.empty { font-family: var(--f-body); font-weight: 400; font-size: 13px; color: #BDBBD6; }
+.mrow .v.wait { opacity: 0; }
+.mrow.filled { border-style: solid; border-color: var(--ink); }
+.mrow.ai.filled { border-style: dashed; border-color: var(--purple); background: #FAFAFF; }
+.mrow.hit { animation: arrive .9s ease; }
+.reflect { font-size: 14px; font-weight: 600; color: #4F7A00; text-align: center; }
+.flyer { position: absolute; z-index: 50; pointer-events: none; background: var(--lime); color: var(--ink); font-family: var(--f-display); font-weight: 800; font-size: 16px; line-height: 1.5; border-radius: 6px; padding: 0 6px; box-shadow: 3px 3px 0 var(--ink); white-space: nowrap; }
+
+.aiprop { border: 2px dashed var(--purple); background: #FAFAFF; border-radius: var(--r-l); padding: 18px 20px; display: grid; gap: 12px; max-width: 620px; margin-inline: auto; width: 100%; }
+.aiprop-h { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.aiprop-h b { font-family: var(--f-display); font-weight: 800; font-size: 16px; }
+.aiprop ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.aiprop li { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 500; }
+.aiprop li::before { content: "◇"; font-family: var(--f-mono); color: var(--purple); }
+
+.tag-ctx { background: #EEEDF6; color: var(--muted); }
+.legend-s { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; font-size: 11.5px; color: var(--muted); }
+
+/* 용어 도움말: hover · 클릭 · 키보드 */
+.term-help { position: relative; display: inline-flex; vertical-align: middle; }
+.help { width: 19px; height: 19px; padding: 0; border-radius: 50%; border: 1.5px solid var(--purple); background: var(--paper); color: var(--purple); font-family: var(--f-mono); font-size: 11px; font-weight: 700; line-height: 1; cursor: help; display: inline-grid; place-items: center; }
+.help[aria-expanded="true"] { background: var(--purple); color: #fff; }
+.tip { position: absolute; left: -10px; top: calc(100% + 8px); z-index: 30; width: 260px; background: var(--ink); color: #fff; font-family: var(--f-body); font-size: 13px; font-weight: 400; line-height: 1.55; text-align: left; border-radius: 12px; padding: 10px 12px; box-shadow: 4px 4px 0 var(--purple); white-space: normal; }
+.tip b { color: var(--lime); margin-right: 4px; }
+
+/* ── S3 정돈된 제작 요청서 초안 ── */
+.brief2 { padding-block: 40px 24px; }
+.gather { position: relative; margin-top: 22px; }
+.ghosts { position: absolute; inset: 0 0 auto; height: 160px; z-index: 2; pointer-events: none; }
+.ghosts span { position: absolute; top: 36px; left: 50%; width: 190px; margin-left: -95px; padding: 14px; text-align: center; background: var(--paper); border: 2px solid var(--ink); border-radius: 14px; box-shadow: 4px 4px 0 var(--purple); font-family: var(--f-display); font-weight: 800; font-size: 14px; transition: transform .45s cubic-bezier(.5, 0, .2, 1), opacity .45s; }
+.ghosts span:nth-child(1) { transform: translate(-220px, 10px) rotate(-4deg); }
+.ghosts span:nth-child(2) { transform: translate(0, -6px) rotate(2deg); }
+.ghosts span:nth-child(3) { transform: translate(220px, 12px) rotate(-3deg); }
+.gather.go .ghosts span { transform: translate(0, 40px) scale(.7); opacity: 0; }
+.doc { opacity: 0; transform: translateY(18px) scale(.985); transition: opacity .35s .4s, transform .35s .4s; background: var(--paper); border: 2px solid var(--ink); border-radius: var(--r-l); box-shadow: 10px 10px 0 var(--purple); padding: 26px 28px; display: grid; gap: 20px; }
+.gather.go .doc { opacity: 1; transform: none; }
+.doc-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-wrap: wrap; padding-bottom: 16px; border-bottom: 2px solid var(--ink); }
+.doc-head h3 { font-size: 26px; font-weight: 900; margin-top: 4px; }
+.doc-badges { display: flex; gap: 6px; align-items: center; }
+.pill-draft { font-family: var(--f-mono); font-size: 12px; font-weight: 600; background: var(--lime); border: 1.5px solid var(--ink); border-radius: 99px; padding: 3px 10px; }
+.doc-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.dg { border: 1.5px solid var(--line); border-radius: var(--r-m); padding: 16px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.dg-h { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.dg-h h4 { margin: 0; font-family: var(--f-display); font-weight: 800; font-size: 16px; }
+.dg ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 7px; }
+.dg li { display: flex; align-items: center; gap: 6px; font-size: 14.5px; }
+.dg li::before { content: "·"; font-weight: 800; color: var(--muted); }
+.dg-client { background: var(--lime-soft); border-color: var(--ink); }
+.dg-client ul { display: flex; flex-wrap: wrap; gap: 6px; }
+.dg-client li::before { content: none; }
+.dg-client li { font-family: var(--f-display); font-weight: 800; font-size: 15px; background: var(--paper); border: 2px solid var(--ink); border-radius: 99px; padding: 4px 12px; }
+.dg-ai { border-style: dashed; border-color: var(--purple); background: #FAFAFF; }
+.dg-check { border-style: dashed; border-color: var(--pink); }
+.doc-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.more-btn { font-size: 14px; padding: 9px 16px; }
+.doc-more { animation: pop .25s ease both; }
+.tbl-wrap { overflow-x: auto; }
+.doc-more table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.doc-more th, .doc-more td { text-align: left; padding: 10px 8px; border-bottom: 1px dashed var(--line); vertical-align: middle; }
+.doc-more th { font-size: 12px; color: var(--muted); font-weight: 600; border-bottom: 1.5px solid var(--ink); }
+.doc-more td:first-child { font-family: var(--f-mono); font-size: 11.5px; color: var(--muted); white-space: nowrap; }
+.doc-more td.v { font-weight: 600; }
+.doc-more td.n { font-size: 13px; color: var(--muted); }
+.doc-more .lab { display: inline-flex; align-items: center; gap: 5px; }
+
+/* ── S4 대표 캐릭터 단독 · S5 전체 쇼케이스 ── */
+.hero-char { min-height: calc(100vh - var(--nav-h)); display: grid; align-items: center; padding-block: 72px; }
+.hc-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 56px; align-items: center; }
+.hc-art { margin: 0; position: relative; overflow: hidden; justify-self: center; width: min(100%, 440px, calc((100vh - var(--nav-h) - 120px) * .8)); aspect-ratio: 4 / 5; border: 2px solid var(--ink); border-radius: var(--r-l); box-shadow: 10px 10px 0 var(--ink); background: radial-gradient(circle at 24% 18%, #fff 0 10%, transparent 11%), linear-gradient(170deg, var(--purple-soft), var(--pink-soft) 75%); }
+.hc-art svg { width: 100%; height: 100%; display: block; }
+.hc-copy { display: grid; gap: 16px; }
+.hc-copy h2 { font-size: clamp(32px, 4vw, 50px); font-weight: 900; line-height: 1.22; }
+.hc-chips { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
+.hc-chips li { font-family: var(--f-display); font-weight: 800; font-size: 15px; background: var(--lime); border: 2px solid var(--ink); border-radius: 99px; padding: 5px 14px; }
+.showcase { padding-block: 72px 56px; }
+.sc-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.sc { margin: 0; position: relative; overflow: hidden; aspect-ratio: 4 / 5; border: 2px solid var(--ink); border-radius: var(--r-l); box-shadow: 6px 6px 0 var(--ink); background: var(--purple-soft); }
+.sc svg { width: 100%; height: 100%; display: block; }
+.sc.cute { background: radial-gradient(circle at 75% 18%, #fff 0 10%, transparent 11%), var(--pink-soft); }
+.sc.chic { background: linear-gradient(160deg, #6D60FF, var(--purple-deep)); }
+.sc.dreamy { background: linear-gradient(170deg, #E3DEFF, #FFE5F0 70%, #EEFAD3); }
+.sc.fantasy { background: radial-gradient(circle at 20% 80%, #fff 0 8%, transparent 9%), var(--lime-soft); }
+.sc.elegant { background: linear-gradient(170deg, #F4F1EC, #E2DDF5); }
+.sc.pop { background: radial-gradient(circle at 80% 20%, #fff 0 9%, transparent 10%), #FFF1D6; }
+.pic-note {
+  position: absolute; left: 10px; top: 10px; font-family: var(--f-mono); font-size: 10.5px; font-weight: 600;
+  background: var(--paper); border: 1.5px solid var(--ink); border-radius: 99px; padding: 2px 8px;
+}
+.pic-label { position: absolute; left: 10px; right: 10px; bottom: 10px; display: flex; flex-wrap: wrap; gap: 4px; }
+.pic-label b { font-size: 12px; font-weight: 600; background: var(--paper); border: 1.5px solid var(--ink); border-radius: 99px; padding: 2px 9px; }
+.reduce-motion .rv, .reduce-motion .doc { opacity: 1; transform: none; }
+.reduce-motion .ghosts { display: none; }
+@keyframes arrive { 0%, 30% { background: var(--lime-soft); } 100% { background: transparent; } }
+
+/* ── S4 첫 질문 체험 ── */
+.try { padding-block: 48px 40px; scroll-margin-top: var(--nav-h); }
+.try-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 22px; }
+.try-head > div:first-child { display: grid; gap: 12px; }
+.try-head h2 { font-size: clamp(30px, 3.8vw, 46px); font-weight: 900; line-height: 1.25; }
+.try-mascot { display: flex; align-items: flex-end; gap: 8px; }
+.try-mascot svg { width: 100px; height: 100px; animation: bob 4.5s ease-in-out infinite; }
+.speech { background: var(--paper); border: 2px solid var(--ink); border-radius: 18px 18px 4px 18px; padding: 8px 12px; font-size: 13.5px; font-weight: 500; margin-bottom: 64px; white-space: nowrap; }
+.try-box { background: var(--paper); border: 2px solid var(--ink); border-radius: var(--r-l); box-shadow: 10px 10px 0 var(--purple); overflow: hidden; scroll-margin-top: calc(var(--nav-h) + 16px); }
+
+.ask { padding: clamp(20px, 4vw, 36px); display: grid; gap: 22px; }
+.ask fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+.ask-q { font-family: var(--f-display); font-weight: 800; font-size: 20px; display: flex; align-items: center; gap: 10px; padding: 0; margin-bottom: 14px; }
+.q-n { font-family: var(--f-mono); font-size: 12px; background: var(--purple); color: #fff; border-radius: 6px; padding: 3px 7px; }
+.routes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.route {
+  text-align: left; display: flex; align-items: center; gap: 16px; padding: 18px 20px; cursor: pointer;
+  border-radius: var(--r-m); border: 2px solid var(--ink); background: var(--paper); color: var(--ink);
+  box-shadow: 4px 4px 0 var(--ink); transition: transform .15s, box-shadow .15s, background .15s;
+}
+.route:hover { transform: translate(-1px, -1px); box-shadow: 6px 6px 0 var(--ink); }
+.route i { font-style: normal; width: 52px; height: 52px; flex: none; border-radius: 16px; display: grid; place-items: center; font-size: 24px; background: var(--lime); border: 2px solid var(--ink); }
+.route[data-r="purpose"] i { background: var(--pink); }
+.route div { display: grid; gap: 2px; }
+.route b { font-family: var(--f-display); font-weight: 800; font-size: 19px; }
+.route span { font-size: 13.5px; color: var(--muted); }
+.route[aria-pressed="true"] { background: var(--purple); color: #fff; box-shadow: 4px 4px 0 var(--purple-deep); border-color: var(--purple-deep); }
+.route[aria-pressed="true"] span { color: #D9D5FF; }
+.route-body { display: grid; gap: 20px; animation: pop .3s ease both; }
+.opts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.opt {
+  text-align: left; display: grid; gap: 4px; padding: 16px; min-height: 92px; align-content: end;
+  border-radius: var(--r-m); border: 2px solid var(--line); background: var(--bg); color: var(--ink); cursor: pointer;
+  transition: border-color .15s, background .15s, transform .15s;
+}
+.opt b { font-family: var(--f-display); font-weight: 800; font-size: 18px; }
+.opt span { font-size: 13px; color: var(--muted); }
+.opt:hover { border-color: var(--purple); transform: translateY(-2px); }
+.opt.idk { border-style: dashed; }
+.opt[aria-pressed="true"] { border-color: var(--purple); background: var(--purple); color: #fff; }
+.opt[aria-pressed="true"] span { color: #D9D5FF; }
+.free-l { font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px; }
+.free input {
+  width: 100%; font: inherit; font-size: 16px; padding: 14px 18px; border-radius: 14px;
+  border: 2px solid var(--line); background: var(--paper); color: var(--ink);
+}
+.free input:focus { outline: none; border-color: var(--purple); }
+.ask-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 20px; }
+.ask-foot .hint { font-size: 13.5px; color: var(--muted); }
+
+/* 데모 상담 */
+.demo-bar { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1.5px solid var(--line); flex-wrap: wrap; }
+.dots { display: flex; gap: 6px; }
+.dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
+.dots i:nth-child(1) { background: var(--pink); }
+.dots i:nth-child(2) { background: var(--lime); }
+.demo-title { font-weight: 600; font-size: 14px; }
+.demo-badge { font-family: var(--f-mono); font-size: 11px; color: var(--muted); background: var(--bg); padding: 4px 8px; border-radius: 6px; }
+.end-btn { margin-left: auto; font-size: 13.5px; font-weight: 700; padding: 8px 14px; border-radius: 999px; border: 2px solid var(--ink); background: var(--lime); color: var(--ink); cursor: pointer; }
+.end-btn:hover { background: #B6EA4F; }
+.end-btn.nudge { animation: ring 1s ease 2; }
+.demo-body { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); height: 560px; }
+.chat { display: flex; flex-direction: column; min-width: 0; min-height: 0; border-right: 1.5px solid var(--line); }
+.chat-log { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; scrollbar-width: thin; }
+.msg { max-width: 86%; padding: 10px 14px; border-radius: 16px; font-size: 14.5px; line-height: 1.55; animation: pop .28s ease both; }
+.msg.ai { background: var(--bg); border-bottom-left-radius: 4px; align-self: flex-start; }
+.msg.user { background: var(--purple); color: #fff; border-bottom-right-radius: 4px; align-self: flex-end; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; align-self: flex-start; animation: pop .28s ease both; }
+.chip { font-size: 13.5px; padding: 8px 13px; border-radius: 999px; background: var(--paper); border: 1.5px solid var(--purple); color: var(--purple-deep); cursor: pointer; transition: all .15s; }
+.chip:hover:not(:disabled) { background: var(--purple-soft); }
+.chip.idk { border-style: dashed; }
+.chip:disabled { cursor: default; border-color: var(--line); color: #A9A7C6; }
+.chip.picked, .chip.picked:disabled { background: var(--ink); color: #fff; border-color: var(--ink); }
+.typing { display: inline-flex; gap: 4px; padding: 13px 14px; }
+.typing i { width: 6px; height: 6px; border-radius: 50%; background: #A9A7C6; animation: blink 1s infinite; }
+.typing i:nth-child(2) { animation-delay: .15s; }
+.typing i:nth-child(3) { animation-delay: .3s; }
+.link-btn { background: none; border: 0; padding: 0; color: var(--purple); font-weight: 600; font-size: 13.5px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.chat-input { display: flex; gap: 8px; padding: 12px; border-top: 1.5px solid var(--line); }
+.chat-input div { flex: 1; font-size: 13.5px; color: #A9A7C6; background: var(--bg); border-radius: 999px; padding: 9px 14px; }
+.chat-input span { background: var(--purple); color: #fff; width: 38px; border-radius: 50%; display: grid; place-items: center; }
+
+.sheet { padding: 16px 18px; overflow-y: auto; min-width: 0; scrollbar-width: thin; }
+.sheet-toggle { display: none; }
+.sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.sheet-head h3 { font-weight: 800; font-size: 15px; }
+.field-row { display: grid; gap: 4px; padding: 9px 0; border-bottom: 1px dashed var(--line); }
+.field-k { display: flex; justify-content: space-between; align-items: center; gap: 6px; font-size: 11.5px; color: var(--muted); }
+.field-v { font-size: 14px; font-weight: 600; min-height: 1.4em; overflow-wrap: anywhere; }
+.field-v.empty { color: #BDBBD6; font-weight: 400; font-size: 13px; }
+.field-t { display: grid; gap: 2px; background: var(--purple-soft); border-radius: 10px; padding: 6px 9px; }
+.field-t .tl { display: flex; justify-content: space-between; gap: 6px; align-items: center; font-family: var(--f-mono); font-size: 10.5px; color: var(--purple); font-weight: 600; }
+.field-t b { font-size: 13px; color: var(--purple-deep); font-weight: 600; }
+.field-row.fresh { animation: flash 1.1s ease; }
+.est { margin-top: 14px; border-radius: var(--r-m); padding: 14px; background: var(--bg); border: 1.5px solid var(--line); display: grid; gap: 6px; }
+.est-k { display: flex; justify-content: space-between; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); font-weight: 600; }
+.est-v { font-family: var(--f-display); font-weight: 900; font-size: 26px; color: var(--purple); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1.15; }
+.est-v.pending { font-family: var(--f-body); font-size: 14px; font-weight: 500; color: var(--muted); }
+.est-v.bump { animation: bump .5s ease; }
+.est-why { font-size: 13px; font-weight: 600; color: var(--ink); min-height: 1.2em; }
+.est-list { display: grid; gap: 0; margin: 2px 0 0; }
+.est-list div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; padding: 6px 0; border-bottom: 1px dashed var(--line); font-size: 13px; }
+.est-list div span:last-child { font-family: var(--f-mono); font-variant-numeric: tabular-nums; color: var(--muted); }
+.est-list div.total { border-bottom: 0; font-weight: 700; }
+.est-list div.total span:last-child { color: var(--ink); }
+.fine { font-size: 12.5px; color: var(--muted); }
+
+.end { display: none; padding: 22px; gap: 14px; align-content: start; overflow-y: auto; min-width: 0; }
+.demo-body.ended { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
+.demo-body.ended .chat { display: none; }
+.demo-body.ended .end { display: grid; }
+.demo-body.ended .sheet { order: -1; border-right: 1.5px solid var(--line); }
+.end h3 { font-size: 22px; font-weight: 900; line-height: 1.3; }
+.ready { display: grid; gap: 6px; padding: 14px; border-radius: 14px; background: var(--bg); }
+.ready .tag { justify-self: start; font-size: 13px; padding: 7px 11px; }
+.ready p { font-size: 14px; }
+.ready small { font-size: 12.5px; color: var(--muted); }
+.end-actions { display: grid; gap: 8px; }
+.end-actions .btn { justify-content: center; font-size: 15.5px; padding: 13px 20px; }
+.end-note { font-size: 13.5px; background: var(--pink-soft); border-radius: 12px; padding: 10px 12px; }
+.end-note:empty { display: none; }
+
+/* ── S6 매칭 두 경로 ── */
+.match { margin-top: 44px; scroll-margin-top: calc(var(--nav-h) + 16px); border-radius: var(--r-l); transition: box-shadow .4s; }
+.match.flash { box-shadow: 0 0 0 4px var(--lime); }
+.match-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; margin-bottom: 18px; }
+.match-head .eyebrow { flex-basis: 100%; }
+.match-head h2 { font-size: clamp(24px, 2.8vw, 32px); font-weight: 900; line-height: 1.25; }
+.match-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.mc { background: var(--paper); border: 1.5px solid var(--line); border-radius: var(--r-m); padding: 20px; display: grid; gap: 12px; align-content: start; min-width: 0; }
+.mc-top { display: flex; align-items: center; gap: 10px; }
+.mc-n { font-family: var(--f-mono); font-size: 11.5px; font-weight: 600; color: var(--purple); background: var(--purple-soft); border-radius: 6px; padding: 3px 7px; }
+.mc h3 { font-size: 19px; font-weight: 800; }
+.mc > p { font-size: 14.5px; color: var(--muted); }
+.mc-list { margin: 0; padding: 0; list-style: none; border: 2px solid var(--ink); border-radius: 14px; overflow: hidden; }
+.mc-list li { display: flex; align-items: center; gap: 10px; padding: 10px 12px; font-size: 13.5px; border-bottom: 1px dashed var(--line); }
+.mc-list li:last-child { border-bottom: 0; }
+.mc-list .who { font-weight: 600; }
+.mc-list .what { color: var(--muted); font-size: 12.5px; }
+.mc-list .act { margin-left: auto; font-size: 12px; font-weight: 600; padding: 5px 10px; border-radius: 999px; background: var(--bg); color: var(--muted); white-space: nowrap; }
+.mc-list .head { background: var(--bg); font-size: 12px; font-weight: 600; color: var(--muted); }
+.avatar { width: 32px; height: 32px; flex: none; border-radius: 50%; background: var(--pink-soft); border: 1.5px dashed var(--pink); display: grid; place-items: center; font-size: 11px; font-weight: 600; color: #A42A60; }
+.mc-steps { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12.5px; font-weight: 600; }
+.mc-steps li { background: var(--bg); border-radius: 999px; padding: 4px 10px; }
+.mc-steps li + li::before { content: "→ "; font-family: var(--f-mono); color: var(--purple); }
+.match-fine { margin-top: 14px; }
+
+footer { padding-block: 40px 44px; font-size: 13px; color: var(--muted); }
+.foot { display: flex; flex-wrap: wrap; gap: 10px 24px; justify-content: space-between; border-top: 1.5px solid var(--line); padding-top: 22px; }
+.foot a { color: var(--ink); font-weight: 600; text-decoration: none; }
+
+@keyframes pop { from { opacity: 0; transform: translateY(6px) scale(.98); } to { opacity: 1; transform: none; } }
+@keyframes termin { from { opacity: 0; transform: translateY(8px); background: var(--lime); } to { opacity: 1; transform: none; } }
+@keyframes blink { 0%, 100% { opacity: .3; } 50% { opacity: 1; } }
+@keyframes bob { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-8px) rotate(2deg); } }
+@keyframes flash { 0% { background: var(--lime-soft); } 100% { background: transparent; } }
+@keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.06); } 100% { transform: scale(1); } }
+@keyframes ring { 0%, 100% { transform: none; } 25% { transform: rotate(-4deg); } 75% { transform: rotate(4deg); } }
+@keyframes nudge { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
+@keyframes drop { from { opacity: 0; transform: translateY(-36px) rotate(calc(var(--r) * 3)) scale(1.1); } to { opacity: 1; transform: rotate(var(--r)); } }
+@keyframes eyeblink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
+.eye { transform-box: fill-box; transform-origin: center; animation: eyeblink 5s infinite; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  html { scroll-behavior: auto; }
+}
+
+@media (max-width: 980px) {
+  .opts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .match-grid { grid-template-columns: minmax(0, 1fr); }
+}
+/* 모바일은 V2.3 범위 밖: 기존 동작을 깨지 않도록 정적 순서로만 보여 준다 */
+@media (max-width: 759px) {
+  .nav-creator { display: none; }
+  .stage.static .pin-grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: "a" "pile" "b" "steps"; row-gap: 28px; }
+  .stage.static .copy-b { margin-top: 28px; }
+  .card b { font-size: 16px; }
+  .card { padding: 9px 13px 10px; }
+  .slots { padding-left: 0; }
+  .pics { gap: 10px; }
+  .mrow { grid-template-columns: minmax(0, 1fr) auto; }
+  .mrow .v { grid-column: 1 / -1; grid-row: 2; }
+  .doc { padding: 20px 18px; }
+  .doc-grid, .hc-grid { grid-template-columns: minmax(0, 1fr); }
+  .ghosts span:nth-child(1) { transform: translate(-90px, 10px) rotate(-4deg); }
+  .ghosts span:nth-child(3) { transform: translate(90px, 12px) rotate(-3deg); }
+  .sc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .routes { grid-template-columns: minmax(0, 1fr); }
+  .try-mascot { display: none; }
+  .try-box { box-shadow: 6px 6px 0 var(--purple); }
+  .opt { min-height: 84px; padding: 14px; }
+  .opt b { font-size: 16.5px; }
+  .demo-body, .demo-body.ended { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); height: 600px; }
+  .chat { border-right: 0; order: 2; }
+  .end { order: 2; }
+  .sheet, .demo-body.ended .sheet { order: 1; border-right: 0; border-bottom: 1.5px solid var(--line); padding: 0; max-height: 300px; }
+  .sheet-toggle {
+    display: flex; width: 100%; justify-content: space-between; align-items: center; gap: 8px;
+    font-size: 13.5px; font-weight: 600; padding: 12px 16px; background: var(--purple-soft); border: 0; color: var(--purple-deep); cursor: pointer;
+    position: sticky; top: 0; z-index: 1;
+  }
+  .sheet-toggle .chev { font-family: var(--f-mono); transition: transform .2s; }
+  .sheet.open .sheet-toggle .chev { transform: rotate(180deg); }
+  .sheet-inner { display: none; padding: 12px 16px 16px; }
+  .sheet.open .sheet-inner { display: block; }
+  .sheet-head h3 { display: none; }
+}
+</style>
+
+<!-- 임시 마스코트 (V1과 동일, 최종 디자인 아님) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <radialGradient id="dotoBody" cx="38%" cy="32%" r="75%">
+      <stop offset="0" stop-color="#8A7EFF"/>
+      <stop offset=".55" stop-color="#5848F5"/>
+      <stop offset="1" stop-color="#3A2DCC"/>
+    </radialGradient>
+    <symbol id="doto" viewBox="-12 -24 224 236">
+      <ellipse cx="96" cy="200" rx="56" ry="7" fill="#212033" opacity=".12"/>
+      <path d="M58 168c-4 12-2 22 8 24s16-6 14-18" fill="#3A2DCC"/>
+      <path d="M118 172c0 12 6 20 15 18s11-12 6-22" fill="#3A2DCC"/>
+      <path d="M110 26c4-18 16-30 32-30" fill="none" stroke="#212033" stroke-width="4.5" stroke-linecap="round"/>
+      <circle cx="146" cy="-6" r="11" fill="#C7F46B" stroke="#212033" stroke-width="3"/>
+      <path d="M104 22c32 1 62 22 70 56 8 34-4 70-32 88-26 16-62 17-88 3-27-15-40-46-33-77 5-27 21-48 44-61 12-7 25-10 39-9z" fill="url(#dotoBody)"/>
+      <path d="M36 112c-18-8-32 0-30 16" fill="none" stroke="#5848F5" stroke-width="15" stroke-linecap="round"/>
+      <ellipse cx="152" cy="138" rx="15" ry="11" fill="#C7F46B" transform="rotate(-20 152 138)"/>
+      <ellipse cx="140" cy="154" rx="5" ry="4" fill="#C7F46B"/>
+      <ellipse cx="74" cy="56" rx="22" ry="10" fill="#fff" opacity=".18" transform="rotate(-25 74 56)"/>
+      <g class="eye"><circle cx="86" cy="88" r="23" fill="#fff"/><circle cx="93" cy="92" r="11" fill="#212033"/><circle cx="97" cy="87" r="3.5" fill="#fff"/></g>
+      <g class="eye"><circle cx="137" cy="80" r="13" fill="#fff"/><circle cx="141" cy="83" r="6" fill="#212033"/><circle cx="143" cy="80" r="2" fill="#fff"/></g>
+      <ellipse cx="62" cy="122" rx="10" ry="6" fill="#FF79B3" opacity=".9"/>
+      <path d="M100 124q12 11 24 -1" fill="none" stroke="#212033" stroke-width="4" stroke-linecap="round"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="logo" href="#top" aria-label="도토 처음으로"><svg aria-hidden="true"><use href="#doto"/></svg>doto<span>.</span></a>
+    <div class="nav-right">
+      <a class="nav-creator" href="#creator">작가용 도토 →</a>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+  <!-- S1 오프닝: V2.2 그대로 (CTA 버튼만 체험 구간으로 옮김) -->
+  <section class="stage" id="stage" aria-label="캐릭터 제작 준비가 복잡한 이유와 도토의 정리">
+    <div class="pin" id="pin">
+      <div class="wrap pin-grid">
+        <div class="copy">
+          <div class="copy-a" id="copyA">
+            <div class="eyebrow">버튜버 · 3D 캐릭터 제작</div>
+            <h1>캐릭터 하나 만들고 싶은데, <em>정할 게 왜 이렇게 많아?</em></h1>
+            <p class="terms-line">리깅? 텍스처? 표정? 예산? 일정?</p>
+            <div class="count">정할 것 <b id="countN">5</b>가지</div>
+            <div class="scroll-hint" id="hint"><i>↓</i> 살짝 내려 봐, 도토가 정리할게</div>
+          </div>
+          <div class="copy-b" id="copyB">
+            <div class="eyebrow">도토가 하는 일</div>
+            <h2>복잡한 건 <em>도토가 정리할게.</em></h2>
+            <p class="sub">어려운 용어는 몰라도 괜찮아. 필요한 건 하나씩 같이 정하면 돼.</p>
+            <div class="count good">흩어진 고민 <b>17</b>가지 → 질문 <b>5</b>단계</div>
+            <div class="row">
+              <svg aria-hidden="true"><use href="#doto"/></svg>
+              <p class="scroll-hint"><i>↓</i> 실제 상담은 이렇게 시작돼</p>
+            </div>
+          </div>
+        </div>
+        <div class="field" id="field">
+          <ol class="steps" id="steps"></ol>
+          <div class="pile" id="pile" aria-hidden="true"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- S2 상담 시연 (V2.4 전면 재설계): 질문 → 이미지 3개 → 선택 → 답변 → 핵심 단어가 요청서로 → 반영. 세로로 쌓이고 지워지지 않음 -->
+  <section class="demo2" id="demo" aria-labelledby="demo-h">
+    <div class="wrap col">
+      <div class="sec-head">
+        <span class="demo-label"><i aria-hidden="true"></i>3D 버튜버 제작 상담 · 예시</span>
+        <h2 id="demo-h">모르는 게 많아도, <em>원하는 모습부터 골라 봐.</em></h2>
+        <p class="sub">참고 이미지가 없어도 괜찮아. 도토가 제작 요청서를 차근차근 정리해 줄게.</p>
+        <span class="memo">미리 정해 둔 시연 · 실제 AI 대화 아님 · 직접 해 보기는 아래에서</span>
+      </div>
+      <div class="thread" id="thread"></div>
+    </div>
+  </section>
+
+  <!-- S3 작성 카드 → 정돈된 제작 요청서 초안 -->
+  <section class="brief2" id="brief" aria-labelledby="doc-h">
+    <div class="wrap col">
+      <div class="say blk rv" id="gatherLead"><svg aria-hidden="true"><use href="#doto"/></svg><div class="bub"><b>좋아! 지금까지 이야기한 내용을 제작자가 이해하기 쉽게 정리했어.</b></div></div>
+      <div class="gather" id="gather">
+        <div class="ghosts" aria-hidden="true"><span>디자인 요구 · 3</span><span>확인된 상황 · 2</span><span>AI 제안 · 4</span></div>
+        <article class="doc" id="doc"></article>
+      </div>
+    </div>
+  </section>
+
+  <!-- S4 대표 캐릭터 단독 비주얼 -->
+  <section class="hero-char" id="heroChar" aria-labelledby="hc-h">
+    <div class="wrap hc-grid">
+      <figure class="hc-art" id="hcArt" role="img" aria-label="예시 이미지: 일반 비율의 애니메이션풍 캐릭터, 보라색 긴 머리에 고양이 귀와 꼬리">
+        <span class="pic-note">제작 스타일 예시</span>
+      </figure>
+      <div class="hc-copy">
+        <div class="eyebrow">요청서에 담긴 방향</div>
+        <h2 id="hc-h">이런 캐릭터를 <em>상상하고 있었다면.</em></h2>
+        <p class="sub">제작 요청서에 담긴 방향을 시각적으로 보여주는 예시야.</p>
+        <ul class="hc-chips" id="hcChips"></ul>
+        <p class="fine">상담 내용을 표현한 제작 스타일 예시이며, 실시간 생성 결과물은 아닙니다.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- S5 전체 쇼케이스 (S4와 분리된 구간) -->
+  <section class="showcase" id="showcase" aria-labelledby="sc-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="eyebrow">버튜버 · 버츄얼 캐릭터</div>
+        <h2 id="sc-h">네 상상도, 이렇게 시작할 수 있어.</h2>
+        <p class="fine">모두 제작 스타일 예시예요. AI가 만든 결과물이나 실제 작가 포트폴리오가 아니에요.</p>
+      </div>
+      <div class="sc-grid" id="scGrid"></div>
+    </div>
+  </section>
+
+  <!-- S4 첫 질문 체험 (상담 시작 CTA는 여기에만) + S6 매칭 -->
+  <section class="try" id="try" aria-labelledby="try-h">
+    <div class="wrap">
+      <div class="try-head">
+        <div>
+          <div class="eyebrow">여기서부터 시작</div>
+          <h2 id="try-h">네가 상상하는 캐릭터는 어떤 모습이야?</h2>
+          <p class="sub">아직 구체적이지 않아도 괜찮아. 도토가 함께 정리해 줄게.</p>
+        </div>
+        <div class="try-mascot" aria-hidden="true">
+          <div class="speech">어느 쪽부터든 좋아!</div>
+          <svg><use href="#doto"/></svg>
+        </div>
+      </div>
+
+      <div class="try-box" id="tryBox">
+        <form class="ask" id="askView" novalidate>
+          <fieldset>
+            <legend class="ask-q"><span class="q-n">시작</span>어디서부터 이야기할까?</legend>
+            <div class="routes">
+              <button type="button" class="route" data-r="imagination" aria-pressed="false"><i aria-hidden="true">✦</i><div><b>모습부터 이야기할래!</b><span>분위기 · 외형 · 표정부터</span></div></button>
+              <button type="button" class="route" data-r="purpose" aria-pressed="false"><i aria-hidden="true">▶</i><div><b>어디에 쓸지부터 정할래!</b><span>방송 · VRChat · 영상</span></div></button>
+            </div>
+          </fieldset>
+          <div class="route-body" id="routeBody" hidden>
+            <fieldset>
+              <legend class="ask-q"><span class="q-n">Q1</span><span id="optQ"></span></legend>
+              <div class="opts" id="opts"></div>
+            </fieldset>
+            <div>
+              <label class="free-l" for="freeText" id="freeL"></label>
+              <div class="free"><input id="freeText" type="text" maxlength="80" autocomplete="off"></div>
+            </div>
+          </div>
+          <div class="ask-foot">
+            <button type="submit" class="btn btn-primary" id="startBtn" disabled>도토와 함께 시작하기 <span class="arrow">→</span></button>
+            <span class="hint" id="startHint">먼저 시작할 방법을 골라 줘.</span>
+          </div>
+          <div><span class="memo">체험용 예시 상담 · 실제 AI 연결 없음 · 고른 답은 상담으로 넘어가고 다시 묻지 않음</span></div>
+        </form>
+
+        <div class="consult" id="consultView" hidden>
+          <div class="demo-bar">
+            <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
+            <div class="demo-title">도토 제작 상담</div>
+            <div class="demo-badge">체험용 예시 · AI 연결 없음</div>
+            <button type="button" class="end-btn" id="endBtn">여기까지 정리하기</button>
+          </div>
+          <div class="demo-body" id="demoBody">
+            <div class="chat">
+              <div class="chat-log" id="chatLog" aria-live="polite"></div>
+              <div class="chat-input" aria-hidden="true"><div>답을 고르거나 직접 입력해</div><span>↑</span></div>
+            </div>
+            <div class="end" id="endView" tabindex="-1" aria-labelledby="endTitle">
+              <div class="eyebrow">상담 정리</div>
+              <h3 id="endTitle">요청서부터 확인해 봐</h3>
+              <div class="ready"><span class="tag" id="readyTag"></span><p id="readyText"></p><small id="readyMissing"></small></div>
+              <div class="end-actions">
+                <button type="button" class="btn btn-primary" id="actFind">제작자 찾아보기 <span class="arrow">→</span></button>
+                <button type="button" class="btn btn-ghost" id="actEdit">요청서 더 수정하기</button>
+                <button type="button" class="btn btn-ghost" id="actKeep">요청서만 보관하기</button>
+              </div>
+              <p class="end-note" id="endNote" role="status"></p>
+              <button type="button" class="link-btn" id="actRestart">↺ 처음부터 다시 해 보기</button>
+            </div>
+            <aside class="sheet" id="sheet">
+              <button class="sheet-toggle" id="sheetToggle" type="button" aria-expanded="false" aria-controls="sheetInner">
+                <span>실시간 요청서 · <span id="countM">0</span>개 항목 정리됨</span><span class="chev">▾</span>
+              </button>
+              <div class="sheet-inner" id="sheetInner">
+                <div class="sheet-head"><h3>실시간 제작 요청서</h3><span class="tag" id="readyChip"></span></div>
+                <div id="fields"></div>
+                <div class="est">
+                  <div class="est-k"><span>참고 견적</span><span class="memo">데모 · 가상 금액</span></div>
+                  <div class="est-v pending" id="estV" aria-live="polite">산정에 필요한 정보 확인 중</div>
+                  <div class="est-why" id="estWhy"></div>
+                  <button type="button" class="link-btn" id="estToggle" aria-expanded="false" aria-controls="estList" hidden>견적 자세히 보기</button>
+                  <div class="est-list" id="estList" hidden></div>
+                  <p class="fine">최종 견적은 제작자가 요청서를 검토한 뒤 제안합니다. 여기 숫자는 동작 설명용 예시예요.</p>
+                </div>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </div>
+
+      <div class="match" id="match" aria-labelledby="match-h">
+        <div class="match-head">
+          <div class="eyebrow">요청서가 준비되면</div>
+          <h2 id="match-h">제작자는 두 가지 방법으로 만날 수 있어.</h2>
+          <span class="memo">서비스 흐름 예시 · 가상 제작자</span>
+        </div>
+        <div class="match-grid">
+          <article class="mc">
+            <div class="mc-top"><span class="mc-n">방법 1 · 직접 찾기</span></div>
+            <h3>추천 제작자에게 요청</h3>
+            <p>도토가 작업 분야에 맞는 제작자를 찾아볼 수 있게 도와줘.</p>
+            <ul class="mc-list" aria-label="가상 제작자 목록 예시">
+              <li><span class="avatar">A</span><span><span class="who">제작자 A</span><br><span class="what">Live2D 리깅</span></span><span class="act" aria-hidden="true">요청하기</span></li>
+              <li><span class="avatar">B</span><span><span class="who">제작자 B</span><br><span class="what">3D 모델링 · 텍스처</span></span><span class="act" aria-hidden="true">요청하기</span></li>
+              <li><span class="avatar">C</span><span><span class="who">제작자 C</span><br><span class="what">캐릭터 원화</span></span><span class="act" aria-hidden="true">요청하기</span></li>
+            </ul>
+            <ol class="mc-steps"><li>요청서 확인</li><li>분야가 맞는 제작자 보기</li><li>내가 골라서 요청</li></ol>
+          </article>
+          <article class="mc">
+            <div class="mc-top"><span class="mc-n">방법 2 · 제안 받기</span></div>
+            <h3>제작자 제안받기</h3>
+            <p>요청서를 공개하고 관심 있는 제작자의 견적과 일정을 비교해 봐.</p>
+            <ul class="mc-list" aria-label="공개 모집 제안 비교 예시">
+              <li class="head">공개 모집 · 도착한 제안 예시</li>
+              <li><span class="avatar">D</span><span><span class="who">제작자 D</span><br><span class="what">견적 · 일정은 제작자가 직접 입력</span></span><span class="act" aria-hidden="true">비교</span></li>
+              <li><span class="avatar">E</span><span><span class="who">제작자 E</span><br><span class="what">견적 · 일정은 제작자가 직접 입력</span></span><span class="act" aria-hidden="true">비교</span></li>
+            </ul>
+            <ol class="mc-steps"><li>요청서 공개 (내가 동의할 때만)</li><li>관심 있는 제작자가 제안</li><li>견적·일정 비교</li></ol>
+          </article>
+        </div>
+        <p class="fine match-fine">요청서를 보내거나 공개하는 건 네가 동의할 때만 진행돼. 제안을 수락해도 그게 곧 계약이나 결제는 아니야. 위 제작자는 흐름을 보여 주기 위한 가상 카드예요.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <span><b style="color:var(--ink);font-family:var(--f-display);font-weight:900">doto.</b> 아이디어와 제작자 사이 · <a href="#creator" id="creator">작가이신가요? 작가용 도토 →</a></span>
+    <span>/request 시안 v2.4 · 2026.10.29 · 카피·금액·정책은 검증 전 기획안 · 캐릭터는 예시 이미지</span>
+  </div>
+</footer>
+
+<script>
+(() => {
+  /* ── 측정 이벤트: 전송 인프라가 없어 개발 로그로만 남긴다 (원문 입력은 넣지 않음) ── */
+  const sent = new Set();
+  function track(name, props = {}, once = true) {
+    if (once && sent.has(name)) return;
+    sent.add(name);
+    console.debug("[doto:event]", name, props);
+  }
+  track("hero_viewed", { viewport: innerWidth + "x" + innerHeight });
+
+  /* ── S1 오프닝: V2.2 그대로 ── */
+  const STEPS = ["어디에 쓸 거야?", "어떤 모습이야?", "어디까지 맡길까?", "예산은 얼마나?", "언제까지 필요해?"];
+  // g: 정리될 질문 단계, at: 흩어진 위치(필드 비율), first: 첫 화면부터 보임, m: 모바일에서도 보임
+  const TERMS = [
+    { t: "리깅", s: "뼈대? 움직임?", g: 2, c: "lime", at: [.24, .2], first: 1, m: 1 },
+    { t: "텍스처", s: "질감은 누가?", g: 2, c: "", at: [.74, .16], first: 1, m: 1 },
+    { t: "표정 몇 개?", s: "6개? 12개?", g: 2, c: "pink", at: [.48, .47], first: 1, m: 1 },
+    { t: "예산", s: "적정가가 얼마지?", g: 3, c: "ink", at: [.2, .76], first: 1, m: 1 },
+    { t: "일정", s: "데뷔는 언제?", g: 4, c: "soft", at: [.78, .74], first: 1, m: 1 },
+    { t: "2D? 3D?", s: "뭐가 맞지?", g: 0, c: "", at: [.5, .08], m: 1 },
+    { t: "VRM? FBX?", s: "파일 형식?", g: 0, c: "soft", at: [.1, .45] },
+    { t: "트래킹 호환", s: "어떤 앱 쓰지?", g: 0, c: "", at: [.9, .42] },
+    { t: "원화 스타일", s: "레퍼런스 있어?", g: 1, c: "lime", at: [.36, .68] },
+    { t: "의상 몇 벌?", s: "추가 요금?", g: 1, c: "", at: [.62, .3] },
+    { t: "헤어 물리", s: "흔들림 넣을까?", g: 1, c: "pink", at: [.3, .36] },
+    { t: "모델링", s: "폴리곤 수?", g: 2, c: "", at: [.66, .6], m: 1 },
+    { t: "파츠 분리", s: "레이어 몇 장?", g: 2, c: "soft", at: [.9, .58] },
+    { t: "립싱크", s: "필요한가?", g: 2, c: "", at: [.14, .92] },
+    { t: "수정 횟수", s: "몇 번까지?", g: 3, c: "", at: [.52, .9] },
+    { t: "상업 이용", s: "수익화해도 돼?", g: 3, c: "lime", at: [.84, .92], m: 1 },
+    { t: "데뷔 날짜", s: "마감은?", g: 4, c: "pink", at: [.4, .2], m: 1 }
+  ];
+  const S = 0.62;             // 정렬됐을 때 카드 크기 비율
+  const ENTER = 0.1;          // 카드 하나가 날아오는 구간 길이
+
+  const stage = document.getElementById("stage");
+  const pin = document.getElementById("pin");
+  const field = document.getElementById("field");
+  const pile = document.getElementById("pile");
+  const stepsEl = document.getElementById("steps");
+  const copyA = document.getElementById("copyA");
+  const copyB = document.getElementById("copyB");
+  const countN = document.getElementById("countN");
+  const hint = document.getElementById("hint");
+  const reduceMq = matchMedia("(prefers-reduced-motion: reduce)");
+
+  const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const easeOut = t => 1 - Math.pow(1 - t, 3);
+  const easeInOut = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+  stepsEl.innerHTML = STEPS.map((q, i) =>
+    `<li><div class="step-q"><span>${i + 1}</span>${q}</div><div class="slots" data-g="${i}"></div></li>`).join("");
+  const stepQs = [...stepsEl.querySelectorAll(".step-q")];
+
+  let order = 0;
+  const cards = TERMS.map((d, i) => {
+    const el = document.createElement("div");
+    el.className = "card " + d.c + (d.m ? "" : " m-hide");
+    el.innerHTML = `<b>${d.t}</b><small>${d.s}</small>`;
+    const r = ((i * 37) % 25) - 12;
+    el.style.setProperty("--r", r + "deg");
+    el.style.setProperty("--d", (i * 0.05) + "s");
+    const slot = document.createElement("span");
+    slot.className = "slot";
+    slot.textContent = d.t;
+    stepsEl.querySelector(`[data-g="${d.g}"]`).appendChild(slot);
+    const start = d.first ? -1 : 0.03 + (order++) * 0.032;
+    return { d, el, slot, r, start, small: el.querySelector("small") };
+  });
+
+  let isStatic = null, W = 0, H = 0, poured = false;
+
+  function layout() {
+    const next = reduceMq.matches || innerWidth < 760 || innerHeight < 520;
+    if (next !== isStatic) {
+      isStatic = next;
+      stage.classList.toggle("static", isStatic);
+      cards.forEach(c => {
+        (isStatic ? pile : field).appendChild(c.el);
+        c.el.style.transform = c.el.style.opacity = c.small.style.opacity = "";
+        c.slot.style.width = c.slot.style.height = "";
+      });
+      [copyA, copyB, hint].forEach(e => { e.style.opacity = e.style.transform = ""; });
+      stepQs.forEach(q => q.style.opacity = "");
+      copyA.removeAttribute("aria-hidden"); copyB.removeAttribute("aria-hidden");
+      copyB.style.pointerEvents = "";
+      countN.textContent = isStatic ? TERMS.length : 5;
+    }
+    if (isStatic) return;
+    W = field.clientWidth; H = field.clientHeight;
+    cards.forEach(c => {
+      c.w = c.el.offsetWidth; c.h = c.el.offsetHeight;
+      c.slot.style.width = (c.w * S) + "px";
+      c.slot.style.height = (c.h * S) + "px";
+    });
+    const fr = field.getBoundingClientRect();
+    const cx = W / 2, cy = H / 2, D = Math.max(W, H) * 0.95;
+    cards.forEach(c => {
+      c.x = clamp(c.d.at[0] * W - c.w / 2, 0, Math.max(0, W - c.w));
+      c.y = clamp(c.d.at[1] * H - c.h / 2, 0, Math.max(0, H - c.h));
+      const sr = c.slot.getBoundingClientRect();
+      c.tx = sr.left - fr.left - c.w * (1 - S) / 2;
+      c.ty = sr.top - fr.top - c.h * (1 - S) / 2;
+      let vx = c.x + c.w / 2 - cx, vy = c.y + c.h / 2 - cy;
+      const len = Math.hypot(vx, vy) || 1;
+      c.ox = c.x + vx / len * D; c.oy = c.y + vy / len * D;
+    });
+    render();
+    if (!poured && W > 0) { poured = true; pour(); }
+  }
+
+  function progress() {
+    const r = stage.getBoundingClientRect();
+    const span = stage.offsetHeight - pin.offsetHeight;
+    return span > 0 ? clamp(-r.top / span) : 1;
+  }
+
+  // 카드는 첫 화면에서 시간에 따라 저절로 쏟아지고(tp), 스크롤은 정돈만 담당한다
+  let tp = 0;
+  function pour() {
+    const t0 = performance.now();
+    const tick = now => {
+      tp = clamp((now - t0) / 1800);
+      render();
+      if (tp < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+
+  function render() {
+    if (isStatic) return;
+    const p = progress();
+    const ent = Math.max(tp, clamp(p / 0.3)) * 0.5;   // 등장·축적
+    const m = easeInOut(clamp((p - 0.3) / 0.55));     // 정돈
+    let seen = 0;
+    cards.forEach((c, i) => {
+      const e = c.start < 0 ? 1 : clamp((ent - c.start) / ENTER);
+      const ee = easeOut(e);
+      if (e > 0.5) seen++;
+      const sx = lerp(c.ox, c.x, ee), sy = lerp(c.oy, c.y, ee);
+      const x = lerp(sx, c.tx, m), y = lerp(sy, c.ty, m);
+      const rot = lerp(c.r * (1 + (1 - ee) * 2), 0, m);
+      const sc = lerp(1 + (1 - ee) * 0.35, S, m);
+      c.el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) rotate(${rot.toFixed(2)}deg) scale(${sc.toFixed(3)})`;
+      c.el.style.opacity = c.start < 0 ? 1 : clamp(e * 3);
+      c.el.style.zIndex = m > 0.5 ? 1 : i + 1;
+      c.small.style.opacity = 1 - m;
+    });
+    countN.textContent = seen;
+    const a = 1 - clamp((p - 0.25) / 0.2), b = clamp((p - 0.38) / 0.2);
+    copyA.style.opacity = a; copyA.style.transform = `translateY(${(-24 * (1 - a)).toFixed(1)}px)`;
+    copyB.style.opacity = b; copyB.style.transform = `translateY(${(24 * (1 - b)).toFixed(1)}px)`;
+    copyA.toggleAttribute("aria-hidden", a < 0.5);
+    copyB.toggleAttribute("aria-hidden", b < 0.5);
+    copyB.style.pointerEvents = b > 0.5 ? "auto" : "none";
+    hint.style.opacity = tp < 1 ? tp : 1 - clamp(p / 0.12);
+    const q = clamp((p - 0.6) / 0.25);
+    stepQs.forEach(el => el.style.opacity = q);
+    if (b > 0.9) track("solution_viewed", { scroll_progress: +p.toFixed(2) });
+  }
+
+  /* ── 예시 캐릭터 (임시 SVG 일러스트, 실제 작품 아님) ── */
+  const INK = "#212033";
+  const CHARS = {
+    cute: { hair: "#FFD3A3", hairDark: "#F2B06B", eye: "#FF79B3", outfit: "#FFFFFF", acc: "cat", long: 1, expr: "smile" },
+    chic: { hair: "#3B3858", hairLight: "#6C6895", hairDark: "#1C1B2E", eye: "#C7F46B", outfit: "#2C2A44", outfitLight: "#4A4770", acc: "phones", expr: "cool", is3d: 1 },
+    dreamy: { hair: "#B9B2FF", hairLight: "#EAE7FF", hairDark: "#7E73EE", eye: "#3CC6B8", outfit: "#ECEAFF", outfitLight: "#FFFFFF", acc: "halo", long: 1, expr: "dreamy", is3d: 1 }
+  };
+  function charSVG(o, id) {
+    const g3 = o.is3d;
+    const hair = g3 ? `url(#${id}h)` : o.hair, back = g3 ? `url(#${id}h)` : o.hairDark;
+    const skin = g3 ? `url(#${id}s)` : "#FFE6D6";
+    const outfit = g3 ? `url(#${id}o)` : o.outfit;
+    const st = (w = 3) => `stroke="${INK}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"`;
+    const defs = g3 ? `<defs>
+      <radialGradient id="${id}h" cx="35%" cy="22%" r="85%"><stop offset="0" stop-color="${o.hairLight}"/><stop offset=".5" stop-color="${o.hair}"/><stop offset="1" stop-color="${o.hairDark}"/></radialGradient>
+      <radialGradient id="${id}s" cx="42%" cy="38%" r="70%"><stop offset="0" stop-color="#FFF3EA"/><stop offset=".7" stop-color="#FFE0CC"/><stop offset="1" stop-color="#F2BFA3"/></radialGradient>
+      <linearGradient id="${id}o" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${o.outfitLight}"/><stop offset="1" stop-color="${o.outfit}"/></linearGradient></defs>` : "";
+    const eye = (cx, ry = 12) => `<g class="eye"><ellipse cx="${cx}" cy="118" rx="9.5" ry="${ry}" fill="${o.eye}" ${st(2.5)}/>
+      <ellipse cx="${cx + 1}" cy="120" rx="4.8" ry="${ry * .55}" fill="${INK}"/><circle cx="${cx + 3.5}" cy="${118 - ry * .4}" r="2.8" fill="#fff"/></g>
+      <path d="M${cx - 12} ${120 - ry}Q${cx} ${112 - ry} ${cx + 12} ${120 - ry}" fill="none" ${st(4)}/>`;
+    const wink = cx => `<path d="M${cx - 10} 121Q${cx} 110 ${cx + 10} 121" fill="none" ${st(4)}/><path d="M${cx - 11} 113l-4 -3M${cx - 8} 110l-2 -4" ${st(2.5)}/>`;
+    const smile = `<path d="M91 145Q100 153 109 145" fill="none" ${st(3)}/>`;
+    let face;
+    if (o.expr === "main") {
+      face = `<g class="ex-a">${eye(80)}${eye(120)}${smile}</g>
+        <g class="ex-b">${wink(80)}${eye(120)}<path d="M89 147Q103 151 113 137" fill="none" ${st(3)}/><path d="M96 148.6l2.4 4.6 2.4-4z" fill="#fff" ${st(1.5)}/></g>`;
+    } else if (o.expr === "cool") {
+      face = `${eye(80, 8)}${eye(120, 8)}<path d="M94 147q6 2 12 -1" fill="none" ${st(3)}/>`;
+    } else if (o.expr === "dreamy") {
+      face = `${eye(80, 11)}${eye(120, 11)}<circle cx="76" cy="122" r="1.6" fill="#fff"/><circle cx="116" cy="122" r="1.6" fill="#fff"/><path d="M97 146q3 3.5 6 0" fill="none" ${st(3)}/>`;
+    } else {
+      face = `${eye(80, 13)}${eye(120, 13)}<path d="M92 144Q100 154 108 144Z" fill="#E5566F" ${st(2.5)}/>`;
+    }
+    const ears = o.acc === "cat" ? `<path d="M56 82L54 28L94 54Z" fill="${hair}" ${st()}/><path d="M144 82L146 28L106 54Z" fill="${hair}" ${st()}/><path d="M62 66L61 44L80 56Z" fill="#FFB8D6"/><path d="M138 66L139 44L120 56Z" fill="#FFB8D6"/>` : "";
+    const front = {
+      horns: `<path d="M72 50C64 38 66 24 76 16C76 28 80 38 86 44Z" fill="#C7F46B" ${st()}/><path d="M128 50C136 38 134 24 124 16C124 28 120 38 114 44Z" fill="#C7F46B" ${st()}/>`,
+      phones: `<path d="M44 110C38 38 162 38 156 110" fill="none" stroke="${INK}" stroke-width="10" stroke-linecap="round"/><path d="M44 110C38 38 162 38 156 110" fill="none" stroke="#C7F46B" stroke-width="3.5" stroke-linecap="round"/><rect x="34" y="96" width="20" height="34" rx="9" fill="${INK}"/><rect x="146" y="96" width="20" height="34" rx="9" fill="${INK}"/><rect x="38" y="104" width="6" height="18" rx="3" fill="#C7F46B"/><rect x="156" y="104" width="6" height="18" rx="3" fill="#C7F46B"/>`,
+      halo: `<ellipse cx="100" cy="20" rx="36" ry="9" fill="none" stroke="${INK}" stroke-width="8"/><ellipse cx="100" cy="20" rx="36" ry="9" fill="none" stroke="#C7F46B" stroke-width="4"/><path d="M140 70l3 7 7 1-5 5 1 7-6-4-6 4 1-7-5-5 7-1z" fill="#FF79B3" ${st(2)}/>`,
+      cat: `<circle cx="138" cy="76" r="6" fill="#FF79B3" ${st(2)}/>`
+    }[o.acc];
+    const backHair = o.long ? "M50 100C40 150 42 200 56 216H144C158 200 160 150 150 100Z" : "M50 100C44 132 48 156 60 168H140C152 156 156 132 150 100Z";
+    const locks = o.long ? `<path d="M52 100C46 132 50 160 60 184C68 164 68 132 66 104Z" fill="${hair}" ${st()}/><path d="M148 100C154 132 150 160 140 184C132 164 132 132 134 104Z" fill="${hair}" ${st()}/>` : "";
+    const shine = g3 ? `<ellipse cx="80" cy="54" rx="20" ry="6" fill="#fff" opacity=".4" transform="rotate(-22 80 54)"/>` : "";
+    return `<svg viewBox="0 0 200 250" aria-hidden="true">${defs}
+      <path d="${backHair}" fill="${back}" ${st()}/>${ears}
+      <path d="M88 156h24v30c-8 5-16 5-24 0z" fill="#F6CDB6" ${st(2.5)}/>
+      <path d="M24 252C28 206 60 186 100 186S172 206 176 252Z" fill="${outfit}" ${st()}/>
+      <path d="M86 188L100 206L114 188" fill="none" ${st(2.5)}/>
+      <path d="M56 98C56 142 76 168 100 170C124 168 144 142 144 98C144 68 124 52 100 52C76 52 56 68 56 98Z" fill="${skin}" ${st()}/>
+      <ellipse cx="70" cy="137" rx="8" ry="4.5" fill="#FF79B3" opacity=".45"/><ellipse cx="130" cy="137" rx="8" ry="4.5" fill="#FF79B3" opacity=".45"/>
+      ${face}${locks}
+      <path d="M50 108C42 64 68 36 100 36C132 36 158 64 150 108C146 94 140 84 132 78C126 92 114 98 100 96C104 88 104 80 102 74C92 88 76 96 62 94C58 98 54 102 50 108Z" fill="${hair}" ${st()}/>
+      ${shine}${front}</svg>`;
+  }
+  /* ── 시연 캐릭터 (임시 SVG): 비율·그림체·파츠만 바꿔 같은 캐릭터로 비교 ── */
+  const PAL = { hair: "#8C7BFF", hairD: "#5848F5", hairL: "#CFC8FF", eye: "#FF79B3", skin: "#FFE6D6", skinD: "#F6CDB6", top: "#FFFFFF", skirt: "#212033", acc: "#C7F46B" };
+  const f1 = n => n.toFixed(1);
+  function headSVG(cx, cy, r, a, pal, uid) {
+    const st = a.st || "anime", semi = st === "semi", toon = st === "cartoon";
+    const ink = semi ? "#4A3A48" : INK;
+    const w = toon ? Math.max(2.2, r * .075) : semi ? Math.max(.9, r * .03) : Math.max(1.3, r * .05);
+    const S = (k = 1) => `stroke="${ink}" stroke-width="${f1(w * k)}" stroke-linejoin="round" stroke-linecap="round"`;
+    const ry = toon ? r : semi ? r * 1.16 : r * 1.06;
+    const X = k => f1(cx + r * k), Y = k => f1(cy + ry * k);
+    const hair = semi ? `url(#${uid}h)` : pal.hair, skin = semi ? `url(#${uid}s)` : pal.skin;
+    const defs = semi ? `<radialGradient id="${uid}h" cx="40%" cy="20%" r="90%"><stop offset="0" stop-color="${pal.hairL}"/><stop offset=".5" stop-color="${pal.hair}"/><stop offset="1" stop-color="${pal.hairD}"/></radialGradient>
+      <radialGradient id="${uid}s" cx="45%" cy="40%" r="70%"><stop offset="0" stop-color="#FFF4EC"/><stop offset=".75" stop-color="#FBDCC8"/><stop offset="1" stop-color="#EDB99C"/></radialGradient>` : "";
+    const hl = toon ? .95 : semi ? 1.55 : 1.85;
+    let back = `<path d="M${X(-1.12)} ${Y(0)}C${X(-1.28)} ${Y(hl * .5)} ${X(-1.2)} ${Y(hl * .85)} ${X(-.9)} ${Y(hl)}L${X(.9)} ${Y(hl)}C${X(1.2)} ${Y(hl * .85)} ${X(1.28)} ${Y(hl * .5)} ${X(1.12)} ${Y(0)}Z" fill="${semi ? hair : pal.hairD}" ${S()}/>`;
+    if (a.ears) back += [-1, 1].map(s => `<path d="M${X(s * .2)} ${Y(-.9)}L${X(s * .84)} ${Y(-1.62)}L${X(s * 1.02)} ${Y(-.5)}Z" fill="${hair}" ${S()}/><path d="M${X(s * .44)} ${Y(-.88)}L${X(s * .8)} ${Y(-1.32)}L${X(s * .9)} ${Y(-.68)}Z" fill="#FFB8D6"/>`).join("");
+    const face = toon ? `<circle cx="${f1(cx)}" cy="${f1(cy)}" r="${f1(r)}" fill="${skin}" ${S()}/>`
+      : `<path d="M${X(-1)} ${Y(-.05)}C${X(-1)} ${Y(.55)} ${X(-.42)} ${Y(1)} ${X(0)} ${Y(1)}C${X(.42)} ${Y(1)} ${X(1)} ${Y(.55)} ${X(1)} ${Y(-.05)}C${X(1)} ${Y(-1.05)} ${X(-1)} ${Y(-1.05)} ${X(-1)} ${Y(-.05)}Z" fill="${skin}" ${S()}/>`;
+    const ey = cy + ry * (toon ? .1 : semi ? .1 : .2);
+    let eyes = "";
+    [-1, 1].forEach(s => {
+      const ex = cx + s * r * (semi ? .4 : .42);
+      if (toon) eyes += `<circle cx="${f1(ex)}" cy="${f1(ey)}" r="${f1(r * .11)}" fill="${INK}"/><circle cx="${f1(ex + r * .04)}" cy="${f1(ey - r * .04)}" r="${f1(r * .035)}" fill="#fff"/>`;
+      else if (semi) eyes += `<path d="M${f1(ex - r * .19)} ${f1(ey)}Q${f1(ex)} ${f1(ey - r * .14)} ${f1(ex + r * .19)} ${f1(ey)}Q${f1(ex)} ${f1(ey + r * .1)} ${f1(ex - r * .19)} ${f1(ey)}Z" fill="#fff" ${S()}/>
+        <circle cx="${f1(ex)}" cy="${f1(ey - r * .01)}" r="${f1(r * .075)}" fill="${pal.eye}"/><circle cx="${f1(ex)}" cy="${f1(ey - r * .01)}" r="${f1(r * .035)}" fill="${INK}"/><circle cx="${f1(ex + r * .03)}" cy="${f1(ey - r * .04)}" r="${f1(r * .018)}" fill="#fff"/>
+        <path d="M${f1(ex - r * .22)} ${f1(ey - r * .27)}Q${f1(ex)} ${f1(ey - r * .35)} ${f1(ex + r * .2)} ${f1(ey - r * .25)}" fill="none" ${S(1.8)}/>`;
+      else eyes += `<ellipse cx="${f1(ex)}" cy="${f1(ey)}" rx="${f1(r * .19)}" ry="${f1(r * .26)}" fill="${pal.eye}" ${S()}/><ellipse cx="${f1(ex)}" cy="${f1(ey + r * .05)}" rx="${f1(r * .1)}" ry="${f1(r * .15)}" fill="${INK}"/>
+        <circle cx="${f1(ex + r * .07)}" cy="${f1(ey - r * .1)}" r="${f1(r * .065)}" fill="#fff"/><circle cx="${f1(ex - r * .07)}" cy="${f1(ey + r * .12)}" r="${f1(r * .03)}" fill="#fff"/>
+        <path d="M${f1(ex - r * .25)} ${f1(ey - r * .2)}Q${f1(ex)} ${f1(ey - r * .38)} ${f1(ex + r * .25)} ${f1(ey - r * .22)}" fill="none" ${S(1.9)}/>`;
+    });
+    const my = cy + ry * (toon ? .5 : .62);
+    const mouth = toon ? `<path d="M${X(-.28)} ${f1(my)}Q${X(0)} ${f1(my + r * .34)} ${X(.28)} ${f1(my)}Z" fill="#E5566F" ${S()}/>`
+      : semi ? `<path d="M${X(-.04)} ${Y(.3)}l${f1(r * .05)} ${f1(r * .14)}l${f1(-r * .08)} 0" fill="none" ${S(.9)}/><path d="M${X(-.17)} ${f1(my)}Q${X(0)} ${f1(my + r * .09)} ${X(.17)} ${f1(my)}Q${X(0)} ${f1(my - r * .03)} ${X(-.17)} ${f1(my)}Z" fill="#D9707E" ${S(.8)}/>`
+      : `<path d="M${X(-.12)} ${f1(my)}Q${X(0)} ${f1(my + r * .11)} ${X(.12)} ${f1(my)}" fill="none" ${S()}/>`;
+    const blush = [-1, 1].map(s => toon ? `<circle cx="${X(s * .62)}" cy="${Y(.38)}" r="${f1(r * .13)}" fill="#FF79B3" opacity=".55"/>`
+      : `<ellipse cx="${X(s * .58)}" cy="${Y(semi ? .42 : .5)}" rx="${f1(r * .16)}" ry="${f1(r * .08)}" fill="#FF79B3" opacity="${semi ? .22 : .45}"/>`).join("");
+    const cap = `M${X(-1.14)} ${Y(.2)}C${X(-1.22)} ${Y(-1.25)} ${X(1.22)} ${Y(-1.25)} ${X(1.14)} ${Y(.2)}`;
+    const bang = toon ? `Q${X(.9)} ${Y(-.4)} ${X(.3)} ${Y(-.42)}Q${X(-.2)} ${Y(-.2)} ${X(-.9)} ${Y(-.25)}Z`
+      : semi ? `C${X(.95)} ${Y(-.3)} ${X(.5)} ${Y(-.55)} ${X(.05)} ${Y(-.52)}C${X(-.45)} ${Y(-.5)} ${X(-.8)} ${Y(-.2)} ${X(-1)} ${Y(.25)}Z`
+      : `L${X(.92)} ${Y(-.1)}L${X(.66)} ${Y(-.42)}L${X(.4)} ${Y(-.02)}L${X(.12)} ${Y(-.44)}L${X(-.18)} ${Y(-.06)}L${X(-.46)} ${Y(-.46)}L${X(-.72)} ${Y(-.04)}L${X(-.92)} ${Y(-.3)}Z`;
+    const locks = toon ? "" : [-1, 1].map(s => `<path d="M${X(s * .98)} ${Y(-.3)}C${X(s * 1.06)} ${Y(.3)} ${X(s * 1)} ${Y(.75)} ${X(s * .86)} ${Y(1.05)}C${X(s * .84)} ${Y(.6)} ${X(s * .8)} ${Y(.1)} ${X(s * .72)} ${Y(-.2)}Z" fill="${hair}" ${S()}/>`).join("");
+    const shine = toon ? "" : `<path d="M${X(-.55)} ${Y(-.72)}Q${X(-.1)} ${Y(-.9)} ${X(.4)} ${Y(-.76)}" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="${f1(r * .07)}" stroke-linecap="round"/>`;
+    const horns = a.horns ? [-1, 1].map(s => `<path d="M${X(s * .3)} ${Y(-.88)}C${X(s * .35)} ${Y(-1.35)} ${X(s * .6)} ${Y(-1.6)} ${X(s * .85)} ${Y(-1.62)}C${X(s * .7)} ${Y(-1.4)} ${X(s * .62)} ${Y(-1.1)} ${X(s * .62)} ${Y(-.8)}Z" fill="${pal.acc}" ${S()}/>`).join("") : "";
+    return { defs, ry, back, front: face + blush + eyes + mouth + `<path d="${cap}${bang}" fill="${hair}" ${S()}/>` + locks + shine + horns };
+  }
+  const wingsSVG = (cx, y, sw, h, k) => [-1, 1].map(s => `<path d="M${f1(cx + s * sw * .3)} ${f1(y + 4)}C${f1(cx + s * sw * 1.05)} ${f1(y - h * .3)} ${f1(cx + s * sw * 1.4)} ${f1(y - h * .05)} ${f1(cx + s * sw * 1.32)} ${f1(y + h * .25)}Q${f1(cx + s * sw * .9)} ${f1(y + h * .12)} ${f1(cx + s * sw * .35)} ${f1(y + h * .22)}Z" fill="#fff" stroke="${INK}" stroke-width="${k}" stroke-linejoin="round"/>`).join("");
+  // 전신: prop = sd(약 2등신) · mid(약 4등신) · ld(약 6.5등신)
+  function figSVG(o, uid) {
+    const pal = { ...PAL, ...(o.pal || {}) };
+    const P = { sd: [2.2, .66, .5], mid: [3.9, 1.1, .44], ld: [6.6, 1.45, .4] }[o.prop];
+    const top = 34, ground = 212, cx = 88, Hh = (ground - top) / P[0], r = Hh * .47;
+    const head = headSVG(cx, 0, r, o, pal, uid);
+    const cy = top + head.ry;
+    const h = headSVG(cx, cy, r, o, pal, uid);
+    const neckY = cy + h.ry * .9, B = ground - neckY, sw = Hh * P[1];
+    const shY = neckY + Math.min(Hh * .12, B * .06), hipY = neckY + B * P[2], skH = B * .2;
+    const legW = Math.max(5, sw * .19), k = o.st === "cartoon" ? 3 : 2;
+    const S = `stroke="${INK}" stroke-width="${k}" stroke-linejoin="round" stroke-linecap="round"`;
+    const tail = o.tail ? `<path d="M${f1(cx + sw * .25)} ${f1(hipY)}C${f1(cx + sw * 1.1)} ${f1(hipY + B * .12)} ${f1(cx + sw * 1.22)} ${f1(hipY - B * .3)} ${f1(cx + sw * .86)} ${f1(hipY - B * .42)}" fill="none" stroke="${INK}" stroke-width="${f1(legW * .8 + k * 2)}" stroke-linecap="round"/>
+      <path d="M${f1(cx + sw * .25)} ${f1(hipY)}C${f1(cx + sw * 1.1)} ${f1(hipY + B * .12)} ${f1(cx + sw * 1.22)} ${f1(hipY - B * .3)} ${f1(cx + sw * .86)} ${f1(hipY - B * .42)}" fill="none" stroke="${pal.hair}" stroke-width="${f1(legW * .8)}" stroke-linecap="round"/>` : "";
+    const legs = [-1, 1].map(s => `<rect x="${f1(cx + s * sw * .16 - legW / 2)}" y="${f1(hipY - 4)}" width="${f1(legW)}" height="${f1(ground - hipY)}" rx="${f1(legW / 2)}" fill="${pal.skin}" ${S}/><ellipse cx="${f1(cx + s * sw * .18)}" cy="${ground - 2}" rx="${f1(legW * .8)}" ry="${f1(legW * .45)}" fill="${INK}"/>`).join("");
+    const aw = legW * .85, hy = hipY + B * .05;
+    const arms = [-1, 1].map(s => `<path d="M${f1(cx + s * sw * .45)} ${f1(shY + 3)}L${f1(cx + s * sw * .6)} ${f1(hy)}" stroke="${INK}" stroke-width="${f1(aw + k * 2)}" stroke-linecap="round"/><path d="M${f1(cx + s * sw * .45)} ${f1(shY + 3)}L${f1(cx + s * sw * .6)} ${f1(hy)}" stroke="${pal.skin}" stroke-width="${f1(aw)}" stroke-linecap="round"/>`).join("");
+    const neck = `<rect x="${f1(cx - r * .2)}" y="${f1(cy + h.ry * .6)}" width="${f1(r * .4)}" height="${f1(neckY - cy - h.ry * .6 + 4)}" fill="${pal.skinD}" ${S}/>`;
+    const torso = `<path d="M${f1(cx - sw * .5)} ${f1(shY + 4)}Q${f1(cx - sw * .5)} ${f1(shY - 2)} ${f1(cx - sw * .2)} ${f1(neckY + 1)}L${f1(cx + sw * .2)} ${f1(neckY + 1)}Q${f1(cx + sw * .5)} ${f1(shY - 2)} ${f1(cx + sw * .5)} ${f1(shY + 4)}L${f1(cx + sw * .36)} ${f1(hipY)}L${f1(cx - sw * .36)} ${f1(hipY)}Z" fill="${pal.top}" ${S}/>
+      <path d="M${f1(cx - sw * .14)} ${f1(neckY + 1)}L${f1(cx)} ${f1(neckY + B * .07)}L${f1(cx + sw * .14)} ${f1(neckY + 1)}" fill="${pal.acc}" ${S}/>`;
+    const skirt = `<path d="M${f1(cx - sw * .37)} ${f1(hipY - 2)}L${f1(cx + sw * .37)} ${f1(hipY - 2)}L${f1(cx + sw * .56)} ${f1(hipY + skH)}L${f1(cx - sw * .56)} ${f1(hipY + skH)}Z" fill="${pal.skirt}" ${S}/>`;
+    const wings = o.wings ? wingsSVG(cx, shY, sw, B, k) : "";
+    return `<svg viewBox="0 0 176 220" aria-hidden="true"><defs>${h.defs}</defs>${h.back}${wings}${tail}${legs}${arms}${neck}${torso}${skirt}${h.front}</svg>`;
+  }
+  // 상반신: 그림체·파츠 비교용
+  function bustSVG(o, uid) {
+    const pal = { ...PAL, ...(o.pal || {}) }, cx = 88, r = 42;
+    const h0 = headSVG(cx, 0, r, o, pal, uid), cy = 104 - h0.ry * .2;
+    const h = headSVG(cx, cy, r, o, pal, uid), neckY = cy + h.ry * .9, k = o.st === "cartoon" ? 3 : 2;
+    const S = `stroke="${o.st === "semi" ? "#4A3A48" : INK}" stroke-width="${k}" stroke-linejoin="round"`;
+    const body = `<rect x="${cx - 9}" y="${f1(cy + h.ry * .6)}" width="18" height="${f1(neckY - cy - h.ry * .6 + 10)}" fill="${pal.skinD}" ${S}/>
+      <path d="M${cx - 74} 222C${cx - 72} ${f1(neckY + 34)} ${cx - 44} ${f1(neckY + 16)} ${cx - 16} ${f1(neckY + 8)}L${cx + 16} ${f1(neckY + 8)}C${cx + 44} ${f1(neckY + 16)} ${cx + 72} ${f1(neckY + 34)} ${cx + 74} 222Z" fill="${pal.top}" ${S}/>
+      <path d="M${cx - 16} ${f1(neckY + 8)}L${cx} ${f1(neckY + 30)}L${cx + 16} ${f1(neckY + 8)}" fill="${pal.acc}" ${S}/>`;
+    const wings = o.wings ? wingsSVG(cx, neckY + 18, 120, 150, k) : "";
+    return `<svg viewBox="0 0 176 220" aria-hidden="true"><defs>${h.defs}</defs>${h.back}${wings}${body}${h.front}</svg>`;
+  }
+  let artN = 0;
+  const artSVG = a => (a.kind === "bust" ? bustSVG : figSVG)(a, "a" + (++artN));
+
+  /* ── 시연 데이터: 대화·이미지·요청서·문서가 모두 이 한 곳을 본다 ── */
+  const STAT = { provided_context: ["tag-ctx", "주어진 상황"], client_selected: ["tag-ok", "고객 선택"], ai_suggested: ["tag-guess", "AI 제안"], needs_confirmation: ["tag-check", "확인 필요"] };
+  const GLOSS = {
+    "리깅": "3D 캐릭터가 움직일 수 있도록 뼈대와 조작 구조를 설정하는 작업이에요.",
+    "페이셜 트래킹": "카메라나 지원 기기로 얼굴 움직임을 읽어 캐릭터 표정과 고개 움직임에 연결하는 방식이에요.",
+    "물리 설정": "캐릭터가 움직일 때 머리카락·귀·꼬리 등이 자연스럽게 흔들리도록 조정하는 작업이에요.",
+    "텍스처": "3D 모델 표면의 색과 재질 느낌을 표현하는 이미지·설정이에요.",
+    "호환성": "사용할 장비·방송 프로그램과 모델 설정이 함께 작동하는지 확인하는 거예요."
+  };
+  const BRIEF = [
+    { id: "use", section: "project", label: "용도", value: "3D 버튜버 방송", status: "provided_context", note: "상담을 시작할 때 알려 준 상황" },
+    { id: "ref", section: "design", label: "레퍼런스", value: "없음", status: "provided_context", note: "캐릭터 디자인 작업이 따로 필요할 수 있어요" },
+    { id: "ratio", section: "design", label: "캐릭터 비율", value: "LD·일반 비율", status: "client_selected", note: "고객 선택", step: "D1" },
+    { id: "style", section: "design", label: "희망 그림체", value: "애니메이션풍", status: "client_selected", note: "고객 선택", step: "D2" },
+    { id: "parts", section: "design", label: "특수 파츠", value: "고양이 귀·꼬리", status: "client_selected", note: "모델에 포함하고 싶어 함 (움직임과는 별개)", step: "D3" },
+    { id: "design", section: "production", label: "신규 캐릭터 디자인", value: "포함 검토", status: "ai_suggested", note: "별도 견적·범위 확인" },
+    { id: "model", section: "production", label: "모델링·텍스처", term: "텍스처", value: "포함 제안", status: "ai_suggested", note: "몸·의상 범위 미정" },
+    { id: "rig", section: "production", label: "방송용 리깅", term: "리깅", value: "필요성 제안", status: "ai_suggested", note: "사용 프로그램과 원하는 동작 확인 필요" },
+    { id: "face", section: "production", label: "얼굴 트래킹 대응", term: "페이셜 트래킹", value: "검토 권장", status: "ai_suggested", note: "모델 대응·프로그램·장비 미정" },
+    { id: "motion", section: "production", label: "귀·꼬리 움직임 설정", term: "물리 설정", value: "설정 제안 · 미확정", status: "ai_suggested", note: "고정할지, 뼈대·물리 설정을 넣을지 추가 확인", step: "D3" },
+    { id: "file", section: "delivery", label: "납품 파일·형식", value: "미정", status: "needs_confirmation", note: "제작자와 협의" },
+    { id: "biz", section: "delivery", label: "예산·일정·이용 범위", value: "미정", status: "needs_confirmation", note: "실제 계약 전 확인" }
+  ];
+  const BR = Object.fromEntries(BRIEF.map(b => [b.id, b]));
+  const SECTION = { project: "프로젝트", design: "디자인", production: "제작", delivery: "전달·조건" };
+  const DEMO = {
+    intro: { me: "방송용 3D 버튜버를 만들고 싶은데, 참고할 그림은 없어요.", doto: ["괜찮아! 그림이 없어도 돼.", "모습부터 하나씩 골라 보면, 내가 제작 요청서로 정리해 줄게."] },
+    questions: [
+      { id: "D1", tag: "캐릭터 비율", q: "어떤 비율의 캐릭터를 만들고 싶어?", helper: "이미지를 보고 가장 가까운 느낌을 골라줘.",
+        options: [
+          { id: "sd", label: "SD·치비", sub: "머리가 크고 아담해", art: { kind: "fig", prop: "sd" } },
+          { id: "mid", label: "중간 비율", sub: "귀여움과 균형 사이", art: { kind: "fig", prop: "mid" } },
+          { id: "ld", label: "LD·일반 비율", sub: "사람에 가까운 비율", art: { kind: "fig", prop: "ld" } }],
+        selected: ["ld"], reply: ["", "일반 비율", "로 하고 싶어요!"], fields: ["ratio"] },
+      { id: "D2", tag: "그림체", q: "어떤 그림체가 좋아?", helper: "3D로 만들었을 때 원하는 분위기에 가장 가까운 스타일을 골라줘.",
+        options: [
+          { id: "anime", label: "애니메이션풍", sub: "또렷한 눈, 깔끔한 명암", art: { kind: "bust", st: "anime" } },
+          { id: "semi", label: "세미리얼풍", sub: "사람에 가까운 질감", art: { kind: "bust", st: "semi" } },
+          { id: "toon", label: "카툰풍", sub: "둥글고 단순한 형태", art: { kind: "bust", st: "cartoon" } }],
+        selected: ["anime"], reply: ["", "애니메이션풍", "이 좋아요!"], fields: ["style"] },
+      { id: "D3", tag: "특수 파츠", q: "동물 귀나 꼬리처럼 추가하고 싶은 특별한 파츠가 있어?", helper: "여러 개 골라도 되고, 없어도 괜찮아.",
+        options: [
+          { id: "ears", label: "동물 귀", sub: "고양이·여우·토끼 귀 등", art: { kind: "bust", st: "anime", ears: 1 } },
+          { id: "tail", label: "꼬리", sub: "몸 뒤로 이어지는 꼬리", art: { kind: "fig", prop: "ld", tail: 1 } },
+          { id: "horns", label: "뿔·날개 등", sub: "판타지 파츠", art: { kind: "bust", st: "anime", horns: 1, wings: 1 } }],
+        selected: ["ears", "tail"], reply: ["", "고양이 귀랑 꼬리", "가 있으면 좋겠어요!"], fields: ["parts"],
+        later: "실제 상담에서는 ‘없어요’나 ‘기타’도 고를 수 있어.",
+        ai: { field: "motion", say: ["귀·꼬리를 만드는 것과 움직이게 하는 건 다른 작업이야.", "움직임 설정은 ‘AI 제안’으로만 적어 둘게. 필요한지는 나중에 같이 확인하자."] } }
+    ],
+    proposal: { say: ["디자인 이야기는 여기까지!", "방송용 3D 버튜버라면 보통 이런 작업이 필요해. 아직 확정이 아니라, 제작자와 확인할 제안이야."] },
+    summary: [
+      { k: "client", title: "고객의 디자인 요구", status: "client_selected", items: BRIEF.filter(b => b.status === "client_selected").map(b => ({ t: b.value })) },
+      { k: "ctx", title: "확인된 상황", status: "provided_context", items: [{ t: "3D 버튜버 방송용" }, { t: "참고 원화 없음" }] },
+      { k: "ai", title: "AI 추천 제작 구성", status: "ai_suggested", badge: "미승인", items: [{ t: "캐릭터 디자인 작업" }, { t: "3D 모델링·텍스처", term: "텍스처" }, { t: "방송용 리깅·얼굴 움직임 대응", term: "리깅" }, { t: "귀·꼬리 움직임 설정 검토", term: "물리 설정" }] },
+      { k: "check", title: "확인 필요", status: "needs_confirmation", items: [{ t: "헤어·의상 등 세부 원화" }, { t: "모델 제작 범위" }, { t: "방송 장비·프로그램 및 호환성", term: "호환성" }, { t: "귀·꼬리 실제 움직임 필요 여부" }, { t: "납품 형식·일정·예산" }] }
+    ]
+  };
+
+  const tag = (st, extra) => `<span class="tag ${STAT[st][0]}">${STAT[st][1]}${extra ? " · " + extra : ""}</span>`;
+  let tipN = 0;
+  const help = term => { const id = "tip" + (++tipN); return `<span class="term-help"><button type="button" class="help" aria-expanded="false" aria-controls="${id}" aria-label="${term} 뜻 보기">?</button><span class="tip" id="${id}" role="tooltip" hidden><b>${term}</b>${GLOSS[term]}</span></span>`; };
+  const dotoSay = ([b, s], attr = "") => `<div class="say blk rv"${attr}><svg aria-hidden="true"><use href="#doto"/></svg><div class="bub"><b>${b}</b>${s ? `<span>${s}</span>` : ""}</div></div>`;
+  const meSay = html => `<div class="me blk rv"><p><small>나</small>${html}</p></div>`;
+  const DESIGN = ["ratio", "style", "parts"];
+  function mrow(b, filled, hint) {
+    return `<div class="mrow${b.status === "ai_suggested" ? " ai" : ""}${filled ? " filled" : ""}" data-f="${b.id}"><span class="k">${b.label}${b.term && b.status === "ai_suggested" ? help(b.term) : ""}</span>`
+      + `<span class="v${filled ? "" : " empty"}">${filled ? b.value : hint}</span><span class="st">${filled ? tag(b.status) : ""}</span></div>`;
+  }
+  function miniHTML(q, qi) {
+    const rows = DESIGN.map((id, i) => mrow(BR[id], i < qi, i === qi ? "이번 답변이 들어갈 자리" : "다음 질문에서")).join("")
+      + (q.ai ? mrow(BR[q.ai.field], false, "도토 제안 자리") : "");
+    return `<div class="mini blk rv" data-act="fly"><div class="mini-head"><b>제작 요청서</b><span class="mini-st">작성 중 · 디자인 <span class="n">${qi}</span>/3</span></div>`
+      + `<p class="mini-ctx">${BR.use.label}: ${BR.use.value} · ${BR.ref.label}: ${BR.ref.value}</p><div class="mrows">${rows}</div></div>`;
+  }
+  const thread = document.getElementById("thread");
+  thread.innerHTML = meSay(DEMO.intro.me) + dotoSay(DEMO.intro.doto)
+    + DEMO.questions.map((q, qi) => {
+      const picked = q.options.filter(o => q.selected.includes(o.id)).map(o => `‘${o.label}’`);
+      return `<article class="dstep" data-q="${q.id}" aria-label="질문 ${qi + 1} / 3: ${q.tag}">
+        <div class="step-n blk rv">질문 ${qi + 1} / 3 · ${q.tag}</div>
+        ${dotoSay([q.q, q.helper], ' data-act="question"')}
+        <div class="pics blk rv">${q.options.map(o => `<figure class="pic${q.selected.includes(o.id) ? " sel" : ""}"><div class="pic-art" role="img" aria-label="${o.label} 예시 이미지">${artSVG(o.art)}<span class="pic-badge" aria-hidden="true">✓ 선택</span></div><figcaption><b>${o.label}</b><span>${o.sub}</span></figcaption></figure>`).join("")}</div>
+        <p class="pickline blk rv" data-act="pick"><span>→ 이 예시에서는 <b>${picked.join("와 ")}</b>${picked.length > 1 ? "를 함께" : "을"} 골랐어.</span><span class="memo">미리 정해 둔 선택</span>${q.later ? `<span>${q.later}</span>` : ""}</p>
+        ${meSay(`${q.reply[0]}<span class="kw">${q.reply[1]}</span>${q.reply[2]}`)}
+        ${miniHTML(q, qi)}
+        <p class="reflect blk rv">✓ 선택한 내용이 제작 요청서에 반영됐어.</p>
+        ${q.ai ? dotoSay(q.ai.say, ' data-act="ai"') : ""}
+      </article>`;
+    }).join("")
+    + `<div class="dstep"><div class="step-n blk rv">디자인 질문 끝 · 기술 질문은 생략</div>${dotoSay(DEMO.proposal.say)}
+      <div class="aiprop blk rv"><div class="aiprop-h"><b>도토의 기본 제작 구성 제안</b>${tag("ai_suggested", "미확정")}</div>
+      <ul>${DEMO.summary[2].items.map(i => `<li>${i.t}${i.term ? help(i.term) : ""}</li>`).join("")}</ul>
+      <p class="fine">기술적인 건 지금 묻지 않아. 실제 상담에서 필요할 때 하나씩 물어볼게. 견적이나 제작자 수락이 정해진 것도 아니야.</p></div></div>`;
+
+  /* S3 최종 요청서 초안 */
+  const doc = document.getElementById("doc");
+  doc.innerHTML = `<header class="doc-head"><div><div class="eyebrow">DOTO · PROJECT BRIEF</div><h3 id="doc-h">3D 버튜버 제작 요청서</h3></div><div class="doc-badges"><span class="pill-draft">초안</span><span class="memo">상담 시연</span></div></header>
+    <div class="doc-grid">${DEMO.summary.map(g => `<section class="dg dg-${g.k}"><div class="dg-h"><h4>${g.title}</h4>${tag(g.status, g.badge)}</div><ul>${g.items.map(i => `<li>${i.t}${i.term ? help(i.term) : ""}</li>`).join("")}</ul></section>`).join("")}</div>
+    <div class="doc-foot"><div class="legend-s">${Object.keys(STAT).map(k => tag(k)).join("")}<span>AI 제안은 확정·견적 반영·제작자 수락이 아니에요.</span></div>
+      <button type="button" class="btn btn-ghost more-btn" id="moreBtn" aria-expanded="false" aria-controls="docMore">자세히 보기</button></div>
+    <div class="doc-more" id="docMore" hidden><div class="tbl-wrap"><table><thead><tr><th>분류</th><th>항목</th><th>내용</th><th>상태</th><th>추후 확인</th></tr></thead><tbody>
+      ${BRIEF.map(b => `<tr><td>${SECTION[b.section]}</td><td><span class="lab">${b.label}${b.term ? help(b.term) : ""}</span></td><td class="v">${b.value}</td><td>${tag(b.status)}</td><td class="n">${b.note}</td></tr>`).join("")}
+    </tbody></table></div></div>
+    <p class="fine">‘초안’은 지금까지의 이야기를 정돈했다는 뜻이에요. 제작 의뢰에 필요한 항목이 모두 채워졌다는 뜻은 아니고, ‘미정’ 항목은 네가 동의하기 전까지 바뀌지 않아.</p>`;
+  const moreBtn = document.getElementById("moreBtn"), docMore = document.getElementById("docMore");
+  moreBtn.addEventListener("click", () => {
+    const open = docMore.hidden;
+    docMore.hidden = !open;
+    moreBtn.setAttribute("aria-expanded", String(open));
+    moreBtn.textContent = open ? "접기" : "자세히 보기";
+    if (open) track("brief_details_opened", { source: "landing_demo" }, false);
+  });
+
+  /* S4 대표 캐릭터 · S5 쇼케이스 */
+  document.getElementById("hcArt").insertAdjacentHTML("afterbegin", figSVG({ prop: "ld", st: "anime", ears: 1, tail: 1 }, "hc"));
+  document.getElementById("hcChips").innerHTML = DEMO.summary[0].items.map(i => `<li>${i.t}</li>`).join("");
+  const SHOW = [
+    { c: "cute", svg: () => charSVG(CHARS.cute, "ccute"), alt: "고양이 귀가 있는 귀여운 2D Live2D 캐릭터", tags: ["귀엽고 사랑스러운", "2D Live2D"] },
+    { c: "fantasy", svg: () => figSVG({ prop: "sd", st: "cartoon", horns: 1, wings: 1, pal: { hair: "#FF9BC4", hairD: "#E0559A", eye: "#5848F5", top: "#C7F46B", skirt: "#5848F5", acc: "#FFFFFF" } }, "sfan"), alt: "뿔과 날개가 있는 SD 판타지 캐릭터", tags: ["SD · 판타지", "2D Live2D"] },
+    { c: "chic", svg: () => charSVG(CHARS.chic, "cchic"), alt: "헤드폰을 쓴 시크한 3D 버튜버", tags: ["시크하고 멋있는", "3D 버튜버"] },
+    { c: "elegant", svg: () => figSVG({ prop: "ld", st: "semi", pal: { hair: "#6B4E3D", hairD: "#3E2A20", hairL: "#A88470", eye: "#3E7C6B", top: "#212033", skirt: "#5848F5", acc: "#E2DDF5" } }, "sele"), alt: "세미리얼풍의 세련된 일반 비율 3D 캐릭터", tags: ["세련된 LD", "3D 버튜버"] },
+    { c: "dreamy", svg: () => charSVG(CHARS.dreamy, "cdreamy"), alt: "후광이 있는 몽환적인 VRChat 아바타", tags: ["몽환적인 판타지", "VRChat 아바타"] },
+    { c: "pop", svg: () => figSVG({ prop: "mid", st: "anime", ears: 1, pal: { hair: "#FFB23F", hairD: "#E08A12", hairL: "#FFE0A6", eye: "#5848F5", top: "#FF79B3", skirt: "#212033" } }, "spop"), alt: "여우 귀가 있는 발랄한 중간 비율 캐릭터", tags: ["발랄한 중간 비율", "VRChat 아바타"] }
+  ];
+  document.getElementById("scGrid").innerHTML = SHOW.map(s => `<figure class="sc ${s.c}" role="img" aria-label="예시 이미지: ${s.alt}">${s.svg()}<span class="pic-note">제작 스타일 예시</span><div class="pic-label">${s.tags.map(t => `<b>${t}</b>`).join("")}</div></figure>`).join("");
+
+  /* 용어 도움말: 마우스를 올리거나, 누르거나, 키보드로 열고 ESC·바깥 클릭으로 닫는다 */
+  let openTip = null, byHover = false, hoverT = 0;
+  function setTip(btn, open, hover = false) {
+    if (open && openTip && openTip !== btn) setTip(openTip, false);
+    document.getElementById(btn.getAttribute("aria-controls")).hidden = !open;
+    btn.setAttribute("aria-expanded", String(open));
+    if (open) { openTip = btn; byHover = hover; } else if (openTip === btn) openTip = null;
+  }
+  document.addEventListener("click", e => {
+    const b = e.target.closest(".help");
+    if (b) { setTip(b, !(b === openTip && !byHover)); return; }
+    if (openTip && !e.target.closest(".tip")) setTip(openTip, false);
+  });
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && openTip) { const b = openTip; setTip(b, false); b.focus(); } });
+  document.addEventListener("mouseover", e => {
+    const w = e.target.closest?.(".term-help");
+    if (!w) return;
+    clearTimeout(hoverT);
+    const b = w.querySelector(".help");
+    if (openTip !== b) setTip(b, true, true);
+  });
+  document.addEventListener("mouseout", e => {
+    const w = e.target.closest?.(".term-help");
+    if (!w || w.contains(e.relatedTarget) || !byHover) return;
+    const b = w.querySelector(".help");
+    hoverT = setTimeout(() => { if (openTip === b && byHover) setTip(b, false); }, 300);
+  });
+
+  /* ── 스크롤 단계: 화면 아래쪽 기준선을 지난 블록만 한 번씩 반영 (되돌아가도 유지, 빠르게 지나가도 누락 없음) ── */
+  const acts = [];
+  const on = (el, at, fn) => acts.push({ el, at, fn, done: false });
+  const inView = r => r.top >= 0 && r.bottom <= innerHeight;
+  function fillRow(row, animate) {
+    const b = BR[row.dataset.f];
+    const v = row.querySelector(".v");
+    v.textContent = b.value; v.classList.remove("empty");
+    row.querySelector(".st").innerHTML = tag(b.status);
+    row.classList.add("filled");
+    if (animate) { row.classList.remove("hit"); void row.offsetWidth; row.classList.add("hit"); }
+  }
+  // 답변 속 핵심 단어의 복제본이 요청서 칸으로 이동. 원문은 그대로 두고, 값은 먼저 확정해 둔다
+  function flyKeyword(step, q) {
+    const card = step.querySelector(".mini");
+    const rows = q.fields.map(id => card.querySelector(`[data-f="${id}"]`));
+    const src = step.querySelector(".kw"), dst = rows[0].querySelector(".v");
+    rows.forEach(r => fillRow(r, false));
+    const n = card.querySelector(".n");
+    n.textContent = DESIGN.filter(id => card.querySelector(`[data-f="${id}"]`).classList.contains("filled")).length;
+    track("brief_translation_viewed", { question_id: q.id, destination_field_ids: q.fields }, false);
+    const a = src.getBoundingClientRect(), b = dst.getBoundingClientRect();
+    if (reduceMq.matches || !inView(a) || !inView(b)) { rows.forEach(r => fillRow(r, !reduceMq.matches)); return; }
+    dst.classList.add("wait");
+    const el = document.createElement("span");
+    el.className = "flyer"; el.setAttribute("aria-hidden", "true"); el.textContent = src.textContent;
+    el.style.left = (a.left + scrollX) + "px"; el.style.top = (a.top + scrollY) + "px";
+    document.body.appendChild(el);
+    let ended = false;
+    const done = () => { if (ended) return; ended = true; el.remove(); dst.classList.remove("wait"); rows.forEach(r => fillRow(r, true)); };
+    const anim = el.animate([{ transform: "none" }, { transform: `translate(${b.left - a.left}px, ${b.top - a.top}px)` }], { duration: 600, easing: "cubic-bezier(.5, 0, .2, 1)" });
+    anim.onfinish = anim.oncancel = done;
+    setTimeout(done, 1200);
+  }
+
+  document.querySelectorAll("#demo .rv, #brief .rv").forEach(el => on(el, .88, () => el.classList.add("in")));
+  on(document.querySelector("#demo .sec-head"), .7, () => track("consultation_demo_viewed", { is_demo: true }));
+  DEMO.questions.forEach(q => {
+    const step = thread.querySelector(`[data-q="${q.id}"]`);
+    on(step.querySelector('[data-act="question"]'), .8, () => track("demo_design_question_viewed", { question_id: q.id }, false));
+    on(step.querySelector('[data-act="pick"]'), .8, () => {
+      step.querySelector(".pics").classList.add("picked");
+      track("demo_design_selection_revealed", { question_id: q.id, option_ids: q.selected }, false);
+    });
+    on(step.querySelector('[data-act="fly"]'), .7, () => flyKeyword(step, q));
+    if (q.ai) on(step.querySelector('[data-act="ai"]'), .8, () => fillRow(step.querySelector(`[data-f="${q.ai.field}"]`), !reduceMq.matches));
+  });
+  const gather = document.getElementById("gather");
+  on(gather, .62, () => { gather.classList.add("go"); track("brief_summary_viewed", { is_demo: true }); });
+  on(document.getElementById("heroChar"), .6, () => track("hero_character_viewed", { is_example: true }));
+  on(document.getElementById("showcase"), .6, () => track("showcase_viewed", { section_id: "showcase" }));
+
+  function checkActs() {
+    const vh = innerHeight, all = reduceMq.matches;
+    document.documentElement.classList.toggle("reduce-motion", all);
+    for (const a of acts) {
+      if (a.done) continue;
+      if (all || a.el.getBoundingClientRect().top < vh * a.at) { a.done = true; a.fn(); }
+    }
+  }
+
+  let raf = 0;
+  addEventListener("scroll", () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; render(); checkActs(); }); }, { passive: true });
+  addEventListener("resize", () => { layout(); checkActs(); });
+  reduceMq.addEventListener?.("change", () => { layout(); checkActs(); });
+  layout();
+  checkActs();
+  const begin = () => { isStatic = !isStatic; layout(); };
+  if (document.fonts?.ready) document.fonts.ready.then(begin); else begin();
+
+  /* ── S4 첫 질문 체험 → 데모 상담 ── */
+  const ROUTES = {
+    imagination: {
+      q: "어떤 분위기의 캐릭터야?", free: "떠오르는 모습을 직접 이야기해 줘 (선택)",
+      ph: "예) 한쪽 눈을 찡긋하는 장난꾸러기, 머리는 분홍색",
+      opts: [["cute", "귀엽고 사랑스러운", "말랑하고 다정한 느낌"], ["chic", "시크하고 멋있는", "쿨하고 세련된 느낌"], ["dreamy", "몽환적인 판타지", "신비롭고 반짝이는 느낌"], ["playful", "장난기 많은", "능글맞고 표정이 풍부한"]]
+    },
+    purpose: {
+      q: "어디에 사용할 캐릭터야?", free: "쓰고 싶은 곳을 직접 이야기해 줘 (선택)",
+      ph: "예) 게임 방송할 때 쓰고 싶어",
+      opts: [["live", "라이브 방송", "치지직 · 유튜브 · 트위치"], ["vrchat", "VRChat", "VR 아바타로 활동"], ["video", "영상·콘텐츠", "쇼츠 · 뮤직비디오 · 애니"], ["idk", "아직 잘 모르겠어", "같이 정해도 돼"]]
+    }
+  };
+  const MOOD = { cute: "귀엽고 사랑스러운", chic: "시크하고 멋있는", dreamy: "몽환적인 판타지", playful: "장난기 많은" };
+  const USE = { live: "라이브 방송", vrchat: "VRChat 아바타", video: "영상·콘텐츠", idk: "상담하며 정하기" };
+  const FIELDS = [["mood", "분위기"], ["use", "용도"], ["type", "제작 방식"], ["scope", "작업 범위"], ["face", "표정"], ["extra", "추가 설명"]];
+  const TAG = { ok: ["tag-ok", "희망 확인"], guess: ["tag-guess", "제안·검토"], check: ["tag-check", "확인 필요"] };
+  // 데모용 가상 금액(만 원). 실제 단가·가격 기준이 아니다.
+  const PRICE = {
+    illust: ["캐릭터 일러스트", 60, 80], parts: ["파츠 분리", 15, 25], rig2d: ["Live2D 리깅", 45, 70], face2d: ["추가 표정", 10, 15],
+    design: ["원화 디자인", 40, 60], model3d: ["3D 모델링", 80, 120], tex: ["텍스처", 20, 30], rig3d: ["3D 리깅", 30, 50], face3d: ["추가 표정 (블렌드셰이프)", 15, 25]
+  };
+  const READY = {
+    needs_more_info: ["tag-check", "추가 확인 권장", "용도나 제작 방식이 아직 비어 있어. 제작자에게 보내기 전에 조금 더 정해 두면 좋아."],
+    basic_brief: ["tag-guess", "기본 요청 가능", "기본 요청은 할 수 있어. 작업 범위와 표정까지 정하면 제안을 받기 더 쉬워져."],
+    ready_for_proposal: ["tag-ok", "제작자 제안 가능", "제작자가 읽고 제안할 수 있을 만큼 정리됐어."]
+  };
+
+  const $ = id => document.getElementById(id);
+  const routeBtns = [...document.querySelectorAll(".route")];
+  const routeBody = $("routeBody"), optsEl = $("opts"), optQ = $("optQ"), freeL = $("freeL");
+  const freeText = $("freeText"), startBtn = $("startBtn"), startHint = $("startHint");
+  const askView = $("askView"), consultView = $("consultView"), tryBox = $("tryBox");
+  const log = $("chatLog"), fieldsEl = $("fields"), countM = $("countM");
+  const sheet = $("sheet"), sheetToggle = $("sheetToggle"), demoBody = $("demoBody");
+  const estV = $("estV"), estWhy = $("estWhy"), estToggle = $("estToggle"), estList = $("estList");
+  const endBtn = $("endBtn"), endView = $("endView"), endNote = $("endNote");
+  const reduce = () => reduceMq.matches;
+  let route = null, choice = null, run = 0, D = null;
+
+  const refresh = () => {
+    const ok = route && (choice || freeText.value.trim());
+    startBtn.disabled = !ok;
+    startHint.textContent = !route ? "먼저 시작할 방법을 골라 줘." : ok ? "체험용 예시 상담이야. 입력한 내용은 저장되지 않아." : "하나만 고르거나 직접 써도 시작할 수 있어.";
+  };
+  routeBtns.forEach(b => b.addEventListener("click", () => {
+    if (route === b.dataset.r) return;
+    route = b.dataset.r; choice = null;
+    routeBtns.forEach(o => o.setAttribute("aria-pressed", String(o === b)));
+    const R = ROUTES[route];
+    optQ.textContent = R.q; freeL.textContent = R.free; freeText.placeholder = R.ph;
+    optsEl.innerHTML = R.opts.map(([v, l, s]) =>
+      `<button type="button" class="opt${v === "idk" ? " idk" : ""}" data-v="${v}" aria-pressed="false"><b>${l}</b><span>${s}</span></button>`).join("");
+    routeBody.hidden = false;
+    track("entry_route_selected", { route }, false);
+    refresh();
+  }));
+  optsEl.addEventListener("click", e => {
+    const b = e.target.closest(".opt");
+    if (!b) return;
+    const on = b.getAttribute("aria-pressed") !== "true";
+    optsEl.querySelectorAll(".opt").forEach(o => o.setAttribute("aria-pressed", "false"));
+    b.setAttribute("aria-pressed", String(on));
+    choice = on ? b.dataset.v : null;
+    if (choice) track("first_answer_selected", { route, input_type: "option" }, false);
+    refresh();
+  });
+  freeText.addEventListener("input", refresh);
+  freeText.addEventListener("change", () => { if (freeText.value.trim()) track("first_answer_selected", { route, input_type: "free_text" }, false); });
+
+  const wait = ms => new Promise(r => setTimeout(r, reduce() ? 0 : ms));
+  const down = () => { log.scrollTop = log.scrollHeight; };
+  function bubble(cls, text) {
+    const el = document.createElement("div");
+    el.className = "msg " + cls; el.textContent = text;
+    log.appendChild(el); down(); return el;
+  }
+  async function aiSay(text, id) {
+    const t = document.createElement("div");
+    t.className = "msg ai typing"; t.innerHTML = "<i></i><i></i><i></i>";
+    log.appendChild(t); down();
+    await wait(700);
+    t.remove();
+    if (id === run) bubble("ai", text);
+  }
+
+  /* 요청서 · 견적 */
+  function resetSheet() {
+    fieldsEl.innerHTML = FIELDS.map(([k, label]) =>
+      `<div class="field-row" data-k="${k}"><div class="field-k"><span>${label}</span><span class="st"></span></div><div class="field-v empty">이야기하면 채워져</div><div class="field-t" hidden></div></div>`).join("");
+    renderEst("");
+    setReady();
+  }
+  function setField(k, v, st, term, gloss, termSt = "guess") {
+    D.f[k] = { v, st };
+    const f = fieldsEl.querySelector(`[data-k="${k}"]`);
+    const vEl = f.querySelector(".field-v");
+    vEl.textContent = v; vEl.classList.remove("empty");
+    f.querySelector(".st").innerHTML = `<span class="tag ${TAG[st][0]}">${TAG[st][1]}</span>`;
+    const t = f.querySelector(".field-t");
+    t.hidden = !term;
+    if (term) t.innerHTML = `<div class="tl"><span>제작자 언어로</span><span class="tag ${TAG[termSt][0]}">${termSt === "check" ? "확인 필요" : "검토"}</span></div><b>${term}</b>${gloss ? `<span class="gloss">${gloss}</span>` : ""}`;
+    f.classList.remove("fresh"); void f.offsetWidth; f.classList.add("fresh");
+    countM.textContent = Object.keys(D.f).length;
+    setReady();
+  }
+  function renderEst(reason) {
+    const keys = D ? [...D.base, D.face].filter(Boolean) : [];
+    estToggle.hidden = !keys.length;
+    if (!keys.length) {
+      estV.textContent = "산정에 필요한 정보 확인 중"; estV.classList.add("pending");
+      estList.hidden = true; estToggle.setAttribute("aria-expanded", "false"); estToggle.textContent = "견적 자세히 보기";
+    } else {
+      const lo = keys.reduce((s, k) => s + PRICE[k][1], 0), hi = keys.reduce((s, k) => s + PRICE[k][2], 0);
+      estV.textContent = `${lo}~${hi}만 원`; estV.classList.remove("pending");
+      estV.classList.remove("bump"); void estV.offsetWidth; estV.classList.add("bump");
+      estList.innerHTML = keys.map(k => `<div><span>${PRICE[k][0]}</span><span>${PRICE[k][1]}~${PRICE[k][2]}만</span></div>`).join("")
+        + `<div class="total"><span>합계 (예시)</span><span>${lo}~${hi}만</span></div>`;
+    }
+    estWhy.textContent = reason ? "↳ " + reason : "";
+  }
+  estToggle.addEventListener("click", () => {
+    const open = estList.hidden;
+    estList.hidden = !open;
+    estToggle.setAttribute("aria-expanded", String(open));
+    estToggle.textContent = open ? "견적 접기" : "견적 자세히 보기";
+    if (open) track("estimate_details_opened", { is_demo: true }, false);
+  });
+  const ok = k => D && D.f[k] && D.f[k].st !== "check";
+  function readiness() {
+    if (ok("use") && ok("type") && ok("scope") && ok("face")) return "ready_for_proposal";
+    if (ok("use") && ok("type")) return "basic_brief";
+    return "needs_more_info";
+  }
+  function setReady() {
+    const r = READY[readiness()];
+    const chip = $("readyChip");
+    chip.className = "tag " + r[0]; chip.textContent = r[1];
+  }
+
+  /* 정해진 데모 시나리오: 첫 답변에 따라 다음 질문이 달라지고, 이미 답한 것은 다시 묻지 않는다 */
+  function setUse(v) {
+    D.use = v;
+    setField("use", USE[v], v === "idk" ? "check" : "ok");
+    if (v === "vrchat") setField("type", "3D 모델 (VRChat용)", "guess");
+  }
+  function plan2D(reason) {
+    D.kind = "2d"; D.base = ["illust", "parts", "rig2d"];
+    setField("type", "2D · Live2D", "guess");
+    setField("scope", "그림을 방송에서 움직이게", "guess", "일러스트 + 파츠 분리 + Live2D 리깅", "리깅: 그림이 움직이도록 뼈대를 넣는 작업");
+    renderEst(reason || "Live2D 기본 작업 3가지 반영");
+  }
+  function plan3D(plain, design) {
+    D.kind = "3d"; D.base = (design ? ["design"] : []).concat(["model3d", "tex", "rig3d"]);
+    if (!ok("type")) setField("type", "3D 모델", "guess");
+    setField("scope", plain, "guess", (design ? "원화 디자인 + " : "") + "3D 모델링 + 텍스처 + 리깅", "텍스처: 캐릭터 표면에 색과 질감을 입히는 작업");
+    renderEst(design ? "원화 디자인 + 3D 기본 작업 반영" : "3D 기본 작업 3가지 반영");
+  }
+  function undecided(k, v, why) {
+    D.kind = null; D.base = [];
+    setField(k, v, "check");
+    renderEst(why);
+  }
+  const Q = {
+    use: () => ({ ask: "이 캐릭터는 어디에 쓸 거야?", chips: [
+      { l: "라이브 방송", run: () => setUse("live"), say: "라이브 방송용이구나. 용도를 요청서에 적었어." },
+      { l: "VRChat", run: () => setUse("vrchat"), say: "VRChat은 3D 모델이 필요해서 제작 방식도 같이 적어 뒀어." },
+      { l: "영상·콘텐츠", run: () => setUse("video"), say: "영상용이구나. 용도를 요청서에 적었어." },
+      { l: "아직 몰라", idk: 1, run: () => setUse("idk"), say: "괜찮아. 용도는 이야기하면서 정해도 돼." }
+    ] }),
+    mood: () => ({ ask: "어떤 분위기의 캐릭터야?", chips: [
+      ...Object.entries(MOOD).map(([k, l]) => ({ l, run: () => setField("mood", l, "ok"), say: `‘${l}’ 분위기, 요청서에 적었어.` })),
+      { l: "아직 몰라", idk: 1, run: () => setField("mood", "레퍼런스 보며 정하기", "check"), say: "괜찮아. 마음에 드는 그림을 보면서 같이 찾아보자." }
+    ] }),
+    type: () => {
+      if (D.use === "live") return { ask: "방송 화면에 주로 상반신이 보여, 아니면 전신으로 움직여야 해?", chips: [
+        { l: "상반신 위주", run: () => plan2D(), say: "그럼 2D(Live2D)가 잘 맞아. 필요한 작업을 제작자 언어로 바꿔 뒀어." },
+        { l: "전신·춤 동작", run: () => plan3D("전신으로 움직이는 입체 캐릭터"), say: "그럼 3D 모델이 잘 맞아. 필요한 작업을 제작자 언어로 바꿔 뒀어." },
+        { l: "잘 모르겠어", idk: 1, run: () => undecided("type", "2D·3D 중 결정", "제작 방식이 정해지면 계산해 볼게"), say: "괜찮아. ‘확인 필요’로 표시해 둘게." }
+      ] };
+      if (D.use === "vrchat") return { ask: "원하는 캐릭터 디자인 그림이 이미 있어?", chips: [
+        { l: "디자인 그림이 있어", run: () => plan3D("가진 그림을 3D로 만들기"), say: "좋아! 그림을 바탕으로 3D로 만들면 돼. 작업 범위를 정리했어." },
+        { l: "디자인부터 필요해", run: () => plan3D("디자인부터 3D까지", true), say: "그럼 원화 디자인부터 시작해야 해. 작업 범위에 추가했어." },
+        { l: "잘 모르겠어", idk: 1, run: () => undecided("scope", "디자인 그림 보유 여부", "작업 범위가 정해지면 계산해 볼게"), say: "괜찮아. 레퍼런스를 보면서 같이 정하자." }
+      ] };
+      if (D.use === "video") return { ask: "캐릭터가 움직여야 해, 아니면 그림만 있어도 돼?", chips: [
+        { l: "움직이는 캐릭터", run: () => undecided("type", "2D 또는 3D (움직임 필요)", "움직이는 방식이 정해지면 계산해 볼게"), say: "움직이는 방식은 2D와 3D가 있어. 영상 스타일을 보면서 같이 고르자." },
+        { l: "그림이면 충분해", run: () => { D.kind = null; D.base = ["illust"]; setField("type", "일러스트", "ok"); setField("scope", "캐릭터 그림", "guess", "캐릭터 일러스트 (리깅 없음)"); renderEst("일러스트 작업 반영"); }, say: "그럼 리깅 없이 일러스트만 있으면 돼. 작업이 훨씬 간단해졌어." },
+        { l: "잘 모르겠어", idk: 1, run: () => undecided("type", "움직임 필요 여부", "제작 방식이 정해지면 계산해 볼게"), say: "괜찮아. 참고하고 싶은 영상을 보여 주면 같이 정할 수 있어." }
+      ] };
+      return { ask: "처음이라면 방송용 2D(Live2D)로 시작하는 경우가 많아. 일단 그렇게 가정해 둘까?", chips: [
+        { l: "좋아, 그렇게 해", run: () => plan2D("Live2D로 가정하고 기본 작업 3가지 반영"), say: "‘제안·검토’로 적어 뒀어. 언제든 바꿀 수 있어." },
+        { l: "나중에 정할래", idk: 1, run: () => undecided("type", "2D·3D 중 결정", "제작 방식이 정해지면 계산해 볼게"), say: "좋아, ‘확인 필요’로 남겨 둘게." }
+      ] };
+    },
+    face: () => ({ ask: "표정은 얼마나 있으면 좋겠어?", chips: [
+      { l: "기본 표정이면 충분해", run: () => { D.face = null; setField("face", "기본 표정", "ok"); renderEst("추가 표정 없음 · 금액 변화 없음"); }, say: "기본 표정으로 적었어." },
+      { l: "윙크·장난스러운 표정도", run: () => {
+          const t = D.kind === "3d" ? ["추가 표정 블렌드셰이프 제작 검토", "블렌드셰이프: 표정마다 얼굴 모양을 따로 만들어 두는 방식"]
+            : D.kind === "2d" ? ["추가 표정 파라미터 제작 검토", "파라미터: Live2D에서 표정을 바꾸는 조절값"]
+            : ["제작 방식이 정해지면 구현 방법 검토", ""];
+          D.face = D.kind === "3d" ? "face3d" : D.kind === "2d" ? "face2d" : null;
+          setField("face", "윙크 · 장난스러운 표정 추가", "ok", t[0], t[1]);
+          renderEst(D.face ? "추가 표정 작업 반영" : "제작 방식이 정해지면 추가 표정도 계산해 볼게");
+        }, say: "네가 원한 표정은 ‘희망 확인’, 만드는 방법은 ‘검토’로 나눠 적었어." },
+      { l: "잘 모르겠어", idk: 1, run: () => setField("face", "표정 개수", "check"), say: "괜찮아. 제작자와 기본 구성을 보고 정해도 돼." }
+    ] })
+  };
+
+  async function askNext(id) {
+    const key = D.queue.shift();
+    if (!key) {
+      await aiSay("기본 내용은 정리됐어! 위의 ‘여기까지 정리하기’를 누르면 요청서를 먼저 보여 줄게.", id);
+      if (id === run) { endBtn.classList.remove("nudge"); void endBtn.offsetWidth; endBtn.classList.add("nudge"); }
+      return;
+    }
+    const q = Q[key]();
+    await aiSay(q.ask, id);
+    if (id !== run) return;
+    const box = document.createElement("div");
+    box.className = "chips";
+    q.chips.forEach(ch => {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "chip" + (ch.idk ? " idk" : ""); b.textContent = ch.l;
+      b.addEventListener("click", async () => {
+        box.querySelectorAll("button").forEach(x => x.disabled = true);
+        b.classList.add("picked");
+        bubble("user", ch.l);
+        await wait(250);
+        if (id !== run) return;
+        ch.run();
+        await aiSay(ch.say, id);
+        if (id === run) askNext(id);
+      });
+      box.appendChild(b);
+    });
+    log.appendChild(box); down();
+  }
+
+  function openSheet(on) { sheet.classList.toggle("open", on); sheetToggle.setAttribute("aria-expanded", String(on)); }
+  sheetToggle.addEventListener("click", () => openSheet(!sheet.classList.contains("open")));
+
+  askView.addEventListener("submit", async ev => {
+    ev.preventDefault();
+    const text = freeText.value.trim();
+    if (!route || (!choice && !text)) return;
+    const id = ++run;
+    D = { route, f: {}, use: null, kind: null, base: [], face: null, queue: [] };
+    askView.hidden = true; consultView.hidden = false;
+    demoBody.classList.remove("ended"); endNote.textContent = "";
+    tryBox.scrollIntoView({ block: "start", behavior: reduce() ? "auto" : "smooth" });
+    log.innerHTML = ""; countM.textContent = "0"; resetSheet(); openSheet(false);
+    track("consultation_started", { route, is_demo: true }, false);
+
+    // 첫 답변을 상담의 첫 사용자 메시지와 요청서에 그대로 넘긴다
+    const R = ROUTES[route];
+    const label = choice && R.opts.find(o => o[0] === choice)[1];
+    bubble("ai", route === "imagination" ? "네가 상상하는 캐릭터는 어떤 모습이야?" : "어디에 사용할 캐릭터야?");
+    bubble("user", [label, text].filter(Boolean).join(" · "));
+    await wait(350);
+    if (route === "imagination") {
+      if (choice) setField("mood", MOOD[choice], "ok");
+      D.queue = ["use", "type", "face"];
+    } else {
+      if (choice) setUse(choice);
+      D.queue = choice ? ["mood", "type", "face"] : ["use", "mood", "type", "face"];
+    }
+    // 자유 입력은 의미를 분석하지 않고 원문 그대로 보존한다
+    if (text) setField("extra", text, "check", "원문 그대로 보관 · 상담하며 같이 읽어 볼게", "", "check");
+    const ack = [
+      choice && (route === "imagination" ? `‘${label}’ 느낌 좋다! 요청서에 적어 뒀어.` : `${label}${choice === "idk" ? "도 괜찮아. ‘확인 필요’로 적어 뒀어." : "용이구나. 요청서에 적어 뒀어."}`),
+      text && "직접 써 준 내용은 원문 그대로 ‘추가 설명’에 남겨 뒀어."
+    ].filter(Boolean).join(" ");
+    await aiSay(ack, id);
+    if (id === run) askNext(id);
+  });
+
+  /* 언제든 정리 → 요청서 먼저 → 다음 행동 3가지 (실제 전송·저장 없음) */
+  endBtn.addEventListener("click", () => {
+    const r = readiness(), R = READY[r];
+    const miss = [["use", "용도"], ["type", "제작 방식"], ["scope", "작업 범위"], ["face", "표정"]].filter(([k]) => !ok(k)).map(([, l]) => l);
+    $("readyTag").className = "tag " + R[0]; $("readyTag").textContent = R[1];
+    $("readyText").textContent = R[2];
+    $("readyMissing").textContent = miss.length ? "아직 정하지 않은 것: " + miss.join(", ") : "핵심 항목은 모두 채워졌어. 금액과 일정은 제작자가 제안해.";
+    endNote.textContent = "";
+    demoBody.classList.add("ended");
+    openSheet(true);
+    sheet.scrollTop = 0;
+    endView.focus({ preventScroll: true });
+    track("consultation_ended", { readiness: r, is_demo: true }, false);
+  });
+  $("actFind").addEventListener("click", () => {
+    endNote.textContent = "체험에서는 실제 제작자에게 요청을 보내지 않아. 아래에서 제작자를 만나는 두 가지 방법을 볼 수 있어.";
+    const match = $("match");
+    match.scrollIntoView({ block: "start", behavior: reduce() ? "auto" : "smooth" });
+    match.classList.add("flash"); setTimeout(() => match.classList.remove("flash"), 1600);
+  });
+  $("actEdit").addEventListener("click", () => {
+    demoBody.classList.remove("ended");
+    bubble("ai", log.querySelector(".chips button:not(:disabled)") ? "좋아, 이어서 정리하자. 남은 질문에 답해 줘." : "체험에서는 준비된 질문까지만 이어져. 처음부터 다시 해 보면 다른 길도 볼 수 있어.");
+  });
+  $("actKeep").addEventListener("click", () => {
+    endNote.textContent = "체험용 시안이라 실제로 저장되지 않아. 이 페이지를 벗어나면 사라져.";
+  });
+  $("actRestart").addEventListener("click", () => {
+    run++; consultView.hidden = true; askView.hidden = false;
+    tryBox.scrollIntoView({ block: "start", behavior: reduce() ? "auto" : "smooth" });
+  });
+
+  new IntersectionObserver((es, io) => {
+    if (es.some(e => e.isIntersecting)) { track("matching_preview_viewed", { is_demo: true }); io.disconnect(); }
+  }, { threshold: .4 }).observe($("match"));
+})();
+</script>

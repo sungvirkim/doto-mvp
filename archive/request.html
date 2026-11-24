@@ -1,0 +1,758 @@
+<title>도토 의뢰인 랜딩</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@500;700;800;900&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* 레이아웃: 플레이풀 미니멀. 브랜드 컬러는 히어로·밴드·마스코트에만, 상담 UI는 흰 종이 위 가독성 우선.
+   단일 라이트 테마로 의도적으로 고정(브랜드 배경 #F7F7FF 기준). */
+:root {
+  --purple: #5848F5;
+  --purple-deep: #3E31D6;
+  --purple-soft: #ECEAFF;
+  --lime: #C7F46B;
+  --lime-soft: #EEFAD3;
+  --pink: #FF79B3;
+  --pink-soft: #FFE5F0;
+  --ink: #212033;
+  --muted: #66657F;
+  --line: #E2E1F2;
+  --bg: #F7F7FF;
+  --paper: #FFFFFF;
+  --f-display: "Gothic A1", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --f-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --r-s: 10px;
+  --r-m: 18px;
+  --r-l: 28px;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 16px;
+  line-height: 1.65;
+  word-break: keep-all;
+  overflow-x: hidden;
+}
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; letter-spacing: -0.02em; }
+p { margin: 0; }
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--pink); outline-offset: 3px; border-radius: 6px; }
+
+.wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding-left: max(20px, env(safe-area-inset-left, 0px));
+  padding-right: max(20px, env(safe-area-inset-right, 0px));
+}
+section { padding-block: 96px; }
+.eyebrow {
+  font-family: var(--f-mono);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--purple);
+}
+.h2 { font-size: clamp(28px, 4vw, 42px); font-weight: 900; line-height: 1.25; }
+.lead { color: var(--muted); font-size: 17px; max-width: 34em; }
+.sec-head { display: grid; gap: 14px; margin-bottom: 48px; }
+
+/* 버튼 */
+.btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-family: var(--f-display); font-weight: 800; font-size: 17px;
+  padding: 16px 26px; border-radius: 999px; border: 0; cursor: pointer;
+  text-decoration: none; transition: transform .15s ease, box-shadow .15s ease;
+}
+.btn-primary { background: var(--purple); color: #fff; box-shadow: 0 6px 0 var(--purple-deep); }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 0 var(--purple-deep); }
+.btn-primary:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--purple-deep); }
+.btn-ghost { background: transparent; color: var(--ink); padding-inline: 8px; text-decoration: underline; text-underline-offset: 5px; text-decoration-thickness: 2px; text-decoration-color: var(--lime); font-weight: 700; }
+.btn-lime { background: var(--lime); color: var(--ink); box-shadow: 0 6px 0 #9FCB43; }
+.btn-lime:hover { transform: translateY(-2px); }
+.arrow { font-family: var(--f-mono); }
+
+/* 상태 태그: 확정 / 가정 / 확인 필요 */
+.tag {
+  display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+  font-size: 11.5px; font-weight: 600; line-height: 1; padding: 5px 8px; border-radius: 999px;
+}
+.tag::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.tag-ok { background: var(--lime-soft); color: #4F7A00; }
+.tag-guess { background: var(--purple-soft); color: var(--purple-deep); }
+.tag-check { background: var(--pink-soft); color: #C12C6E; }
+.memo {
+  display: inline-block; font-family: var(--f-mono); font-size: 11px; font-weight: 600;
+  color: #C12C6E; border: 1.5px dashed var(--pink); border-radius: 6px; padding: 2px 7px; vertical-align: middle;
+}
+
+/* 내비게이션 */
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 9; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid transparent; }
+.nav.scrolled { border-bottom-color: var(--line); }
+.nav-in { display: flex; align-items: center; gap: 28px; height: 68px; }
+.logo { font-family: var(--f-display); font-weight: 900; font-size: 26px; letter-spacing: -0.04em; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+.logo span { color: var(--purple); }
+.logo svg { width: 28px; height: 28px; }
+.nav-links { display: flex; gap: 22px; font-size: 14.5px; font-weight: 500; color: var(--muted); }
+.nav-links a { text-decoration: none; }
+.nav-links a:hover { color: var(--ink); }
+.nav-right { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+.nav-creator { font-size: 14px; color: var(--muted); text-decoration: none; }
+.nav-creator b { color: var(--ink); font-weight: 600; }
+.nav .btn { padding: 10px 18px; font-size: 14.5px; box-shadow: 0 4px 0 var(--purple-deep); }
+
+/* 히어로 */
+.hero { padding-block: 56px 88px; position: relative; }
+.hero-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 48px; align-items: center; }
+.hero-copy { display: grid; gap: 22px; min-width: 0; }
+.hero h1 { font-size: clamp(30px, 3.4vw, 46px); font-weight: 900; line-height: 1.25; overflow-wrap: break-word; }
+.hero h1 em { font-style: normal; background: linear-gradient(transparent 62%, var(--lime) 62%, var(--lime) 92%, transparent 92%); }
+.hero .sub { font-size: 17.5px; color: var(--muted); max-width: 30em; }
+.hero-ctas { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 6px; }
+.hero-note { font-size: 13.5px; color: var(--muted); display: flex; gap: 14px; flex-wrap: wrap; }
+.hero-note span::before { content: "✓ "; color: var(--purple); font-weight: 700; }
+.hero-art { display: flex; align-items: flex-end; gap: 14px; margin-top: 10px; }
+.mascot-hero { width: 150px; flex: none; animation: bob 4.5s ease-in-out infinite; }
+.speech {
+  background: var(--paper); border: 2px solid var(--ink); border-radius: 18px 18px 18px 4px;
+  padding: 10px 14px; font-size: 14px; font-weight: 500; margin-bottom: 92px; flex: 0 1 170px; min-width: 130px;
+}
+.works { display: flex; gap: 10px; margin-bottom: 4px; }
+.work {
+  width: 74px; aspect-ratio: 3/4; border-radius: 14px; display: grid; place-items: center; text-align: center;
+  font-size: 10.5px; line-height: 1.3; color: var(--muted); border: 1.5px dashed #C9C6EA; background: var(--paper);
+}
+.work:nth-child(1) { transform: rotate(-6deg); background: var(--pink-soft); border-color: var(--pink); color: #A42A60; }
+.work:nth-child(2) { transform: rotate(4deg) translateY(-10px); background: var(--lime-soft); border-color: #9FCB43; color: #4F7A00; }
+
+/* 상담 데모 */
+.demo {
+  background: var(--paper); border-radius: var(--r-l); border: 2px solid var(--ink);
+  box-shadow: 10px 10px 0 var(--purple); overflow: hidden; min-width: 0;
+}
+.demo-bar { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1.5px solid var(--line); }
+.dots { display: flex; gap: 6px; }
+.dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
+.dots i:nth-child(1) { background: var(--pink); }
+.dots i:nth-child(2) { background: var(--lime); }
+.demo-title { font-weight: 600; font-size: 14px; }
+.demo-badge { margin-left: auto; font-family: var(--f-mono); font-size: 11px; color: var(--muted); background: var(--bg); padding: 4px 8px; border-radius: 6px; }
+.demo-body { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); height: 470px; }
+.chat { display: flex; flex-direction: column; min-width: 0; border-right: 1.5px solid var(--line); }
+.chat-log { flex: 1; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 10px; scrollbar-width: thin; }
+.msg { max-width: 88%; padding: 10px 14px; border-radius: 16px; font-size: 14px; line-height: 1.55; animation: pop .28s ease both; }
+.msg.ai { background: var(--bg); border-bottom-left-radius: 4px; align-self: flex-start; }
+.msg.user { background: var(--purple); color: #fff; border-bottom-right-radius: 4px; align-self: flex-end; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; align-self: flex-start; animation: pop .28s ease both; }
+.chip {
+  font: inherit; font-size: 13px; padding: 7px 12px; border-radius: 999px; background: var(--paper);
+  border: 1.5px solid var(--line); color: var(--ink); transition: all .2s ease;
+}
+.chip.idk { border-style: dashed; }
+.chip.picked { background: var(--ink); color: #fff; border-color: var(--ink); }
+.typing { display: inline-flex; gap: 4px; padding: 13px 14px; }
+.typing i { width: 6px; height: 6px; border-radius: 50%; background: #A9A7C6; animation: blink 1s infinite; }
+.typing i:nth-child(2) { animation-delay: .15s; }
+.typing i:nth-child(3) { animation-delay: .3s; }
+.chat-input { display: flex; gap: 8px; padding: 12px; border-top: 1.5px solid var(--line); }
+.chat-input div { flex: 1; font-size: 13.5px; color: #A9A7C6; background: var(--bg); border-radius: 999px; padding: 9px 14px; }
+.chat-input button { border: 0; background: var(--purple); color: #fff; width: 38px; border-radius: 50%; font-size: 16px; }
+
+.sheet { padding: 16px 18px; overflow-y: auto; min-width: 0; background: linear-gradient(var(--paper), var(--paper)) padding-box; scrollbar-width: thin; }
+.sheet-toggle { display: none; }
+.sheet-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.sheet-head h4 { margin: 0; font-family: var(--f-display); font-weight: 800; font-size: 15px; }
+.sheet-count { font-family: var(--f-mono); font-size: 11.5px; color: var(--muted); }
+.field { display: grid; gap: 3px; padding: 9px 0; border-bottom: 1px dashed var(--line); }
+.field-k { display: flex; justify-content: space-between; align-items: center; gap: 6px; font-size: 11.5px; color: var(--muted); }
+.field-v { font-size: 13.5px; font-weight: 500; min-height: 1.4em; }
+.field-v.empty { color: #BDBBD6; font-weight: 400; }
+.field.fresh { animation: flash 1.1s ease; }
+.quote {
+  margin-top: 14px; border-radius: var(--r-m); padding: 14px; background: var(--ink); color: #fff;
+  opacity: .25; filter: grayscale(1); transition: opacity .5s ease, filter .5s ease;
+}
+.quote.on { opacity: 1; filter: none; animation: pop .4s ease; }
+.quote-k { font-size: 11.5px; color: #B9B7D8; display: flex; justify-content: space-between; gap: 6px; }
+.quote-v { font-family: var(--f-display); font-weight: 900; font-size: 24px; color: var(--lime); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.quote-n { font-size: 11.5px; color: #B9B7D8; }
+.replay { margin: 10px 18px 0 auto; display: none; font: inherit; font-size: 13px; background: none; border: 0; color: var(--purple); font-weight: 600; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.replay.show { display: block; }
+
+/* 문제 공감 */
+.worries { background: var(--ink); color: #fff; border-radius: var(--r-l); padding: 64px clamp(20px, 5vw, 64px); position: relative; overflow: hidden; }
+.worries .eyebrow { color: var(--lime); }
+.worries .lead { color: #B9B7D8; }
+.bubble-field { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; margin-top: 44px; }
+.bubble {
+  background: #2E2D45; border-radius: 22px 22px 22px 6px; padding: 22px; display: grid; gap: 10px; align-content: start;
+}
+.bubble:nth-child(even) { transform: translateY(26px); border-radius: 22px 22px 6px 22px; }
+.bubble q { font-family: var(--f-display); font-weight: 800; font-size: 19px; line-height: 1.4; quotes: none; }
+.bubble p { font-size: 14px; color: #B9B7D8; }
+.bubble .k { font-family: var(--f-mono); font-size: 11.5px; color: var(--pink); }
+
+/* 해결 과정 */
+.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; position: relative; }
+.step { display: grid; gap: 14px; padding-right: 32px; align-content: start; }
+.step-n {
+  width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center;
+  font-family: var(--f-mono); font-weight: 600; font-size: 15px; background: var(--paper); border: 2px solid var(--ink); position: relative; z-index: 1;
+}
+.step:nth-child(3) .step-n { background: var(--lime); }
+.steps::before { content: ""; position: absolute; top: 26px; left: 26px; right: 33%; border-top: 2px dashed #C9C6EA; }
+.step h3 { font-size: 21px; font-weight: 800; }
+.step p { color: var(--muted); font-size: 15px; }
+.step .eg { font-size: 13.5px; background: var(--paper); border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 12px; color: var(--ink); }
+
+/* 결과물 (샘플 요청서) */
+.result-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr); gap: 56px; align-items: start; }
+.legend { display: grid; gap: 14px; margin-top: 28px; }
+.legend div { display: grid; grid-template-columns: 92px 1fr; gap: 12px; align-items: start; font-size: 14.5px; color: var(--muted); }
+.doc {
+  background: var(--paper); border-radius: var(--r-m); border: 1.5px solid var(--line);
+  box-shadow: 0 24px 60px -30px rgba(33, 32, 51, .35); overflow: hidden; position: relative;
+}
+.doc-top { background: var(--purple); color: #fff; padding: 22px 26px; display: grid; gap: 4px; position: relative; }
+.doc-top small { font-family: var(--f-mono); font-size: 11.5px; opacity: .8; }
+.doc-top h3 { font-size: 22px; font-weight: 800; }
+.doc-stamp { position: absolute; top: 18px; right: 20px; font-family: var(--f-mono); font-size: 11px; font-weight: 600; background: var(--lime); color: var(--ink); padding: 4px 8px; border-radius: 6px; transform: rotate(3deg); }
+.doc-rows { padding: 8px 26px; }
+.doc-row { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto; gap: 14px; padding: 13px 0; border-bottom: 1px solid var(--line); align-items: start; font-size: 14.5px; }
+.doc-row:last-child { border-bottom: 0; }
+.doc-row dt { color: var(--muted); font-size: 13px; padding-top: 1px; }
+.doc-row dd { margin: 0; font-weight: 500; }
+.doc-quote { margin: 0 26px 26px; border-radius: var(--r-m); background: var(--bg); padding: 18px 20px; }
+.doc-quote .row1 { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; }
+.doc-quote .label { font-size: 13px; color: var(--muted); }
+.doc-quote .price { font-family: var(--f-display); font-weight: 900; font-size: 30px; color: var(--purple); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.doc-quote details { margin-top: 10px; }
+.doc-quote summary { cursor: pointer; font-size: 14px; font-weight: 600; color: var(--purple); list-style: none; display: inline-flex; gap: 6px; align-items: center; }
+.doc-quote summary::-webkit-details-marker { display: none; }
+.doc-quote summary::after { content: "+"; font-family: var(--f-mono); }
+.doc-quote details[open] summary::after { content: "−"; }
+.breakdown { margin-top: 10px; display: grid; gap: 0; }
+.breakdown div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; padding: 8px 0; border-bottom: 1px dashed var(--line); font-size: 14px; }
+.breakdown div span:last-child { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.breakdown small { grid-column: 1 / -1; color: var(--muted); font-size: 12.5px; margin-top: -4px; }
+.fine { font-size: 12.5px; color: var(--muted); margin-top: 12px; }
+
+/* 매칭 */
+.match { background: var(--purple-soft); border-radius: var(--r-l); padding: 64px clamp(20px, 5vw, 64px); }
+.match-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 56px; align-items: start; }
+.intent { background: var(--paper); border-radius: var(--r-m); padding: 22px; display: grid; gap: 12px; border: 2px solid var(--ink); }
+.intent p { font-weight: 600; font-size: 15.5px; }
+.intent-opt { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; border: 1.5px solid var(--line); border-radius: 14px; padding: 12px 14px; font-size: 14.5px; }
+.intent-opt b { font-weight: 600; }
+.intent-opt span { font-size: 12.5px; color: var(--muted); }
+.intent-opt.ready { border-color: var(--purple); background: var(--purple-soft); }
+.intent-opt .to { font-family: var(--f-mono); font-size: 12px; font-weight: 600; color: var(--purple); text-align: right; }
+.flow { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; counter-reset: f; }
+.flow li { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 16px; position: relative; padding-bottom: 26px; }
+.flow li:last-child { padding-bottom: 0; }
+.flow li::before { counter-increment: f; content: counter(f); width: 40px; height: 40px; border-radius: 50%; background: var(--paper); border: 2px solid var(--ink); display: grid; place-items: center; font-family: var(--f-mono); font-weight: 600; font-size: 14px; }
+.flow li::after { content: ""; position: absolute; left: 19px; top: 42px; bottom: 2px; border-left: 2px dashed #B7B1F5; }
+.flow li:last-child::after { display: none; }
+.flow h3 { font-size: 17.5px; font-weight: 800; padding-top: 7px; }
+.flow p { color: var(--muted); font-size: 14.5px; margin-top: 4px; }
+.flow .who { font-family: var(--f-mono); font-size: 11px; font-weight: 600; color: var(--purple); background: var(--paper); padding: 2px 7px; border-radius: 5px; margin-left: 6px; vertical-align: 2px; }
+.callout { margin-top: 24px; background: var(--paper); border-radius: 14px; padding: 14px 16px; font-size: 14px; display: flex; gap: 10px; }
+.callout b { color: #C12C6E; }
+
+/* FAQ */
+.faq-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); gap: 56px; }
+.faq details { border-bottom: 1.5px solid var(--line); }
+.faq summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: 16px; padding: 20px 0; font-family: var(--f-display); font-weight: 700; font-size: 17.5px; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; font-family: var(--f-mono); color: var(--purple); font-size: 20px; line-height: 1; }
+.faq details[open] summary::after { content: "−"; }
+.faq .a { padding: 0 0 20px; color: var(--muted); font-size: 15.5px; display: grid; gap: 8px; max-width: 40em; }
+
+/* 최종 CTA */
+.final { padding-block: 40px 96px; }
+.final-band {
+  background: var(--purple); color: #fff; border-radius: var(--r-l); padding: 64px clamp(20px, 6vw, 80px);
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 32px; align-items: center; position: relative; overflow: hidden;
+}
+.final-band h2 { font-size: clamp(26px, 3.6vw, 40px); font-weight: 900; line-height: 1.3; max-width: 16em; }
+.final-band p { color: #D9D5FF; margin-top: 12px; }
+.final-band .btn { margin-top: 28px; }
+.final-mascot { width: 190px; transform: rotate(-8deg); animation: bob 5s ease-in-out infinite; }
+.final-band::after { content: ""; position: absolute; width: 320px; height: 320px; border-radius: 48% 52% 40% 60%; background: var(--purple-deep); right: -60px; bottom: -140px; z-index: 0; }
+.final-band > * { position: relative; z-index: 1; }
+
+footer { padding-block: 0 48px; font-size: 13px; color: var(--muted); }
+.foot { display: flex; flex-wrap: wrap; gap: 12px 24px; justify-content: space-between; border-top: 1.5px solid var(--line); padding-top: 24px; }
+
+/* 애니메이션 */
+@keyframes pop { from { opacity: 0; transform: translateY(6px) scale(.98); } to { opacity: 1; transform: none; } }
+@keyframes blink { 0%, 100% { opacity: .3; } 50% { opacity: 1; } }
+@keyframes bob { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-8px) rotate(2deg); } }
+@keyframes flash { 0% { background: var(--lime-soft); } 100% { background: transparent; } }
+@keyframes eyeblink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
+.eye { transform-box: fill-box; transform-origin: center; animation: eyeblink 5s infinite; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  html { scroll-behavior: auto; }
+}
+
+/* 반응형 */
+@media (max-width: 980px) {
+  .hero-grid, .result-grid, .match-grid, .faq-grid { grid-template-columns: minmax(0, 1fr); gap: 40px; }
+  .bubble-field { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .nav-links { display: none; }
+  .hero-art { display: none; }
+}
+@media (max-width: 720px) {
+  section { padding-block: 64px; }
+  .nav-creator { display: none; }
+  .demo { box-shadow: 6px 6px 0 var(--purple); }
+  .demo-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); height: 540px; }
+  .chat { border-right: 0; order: 2; min-height: 0; }
+  .sheet { order: 1; border-bottom: 1.5px solid var(--line); padding: 0; max-height: 300px; }
+  .sheet-toggle {
+    display: flex; width: 100%; justify-content: space-between; align-items: center; gap: 8px;
+    font: inherit; font-size: 13.5px; font-weight: 600; padding: 12px 16px; background: var(--purple-soft); border: 0; color: var(--purple-deep); cursor: pointer;
+    position: sticky; top: 0; z-index: 1;
+  }
+  .sheet-toggle .chev { font-family: var(--f-mono); transition: transform .2s; }
+  .sheet.open .sheet-toggle .chev { transform: rotate(180deg); }
+  .sheet-inner { display: none; padding: 12px 16px 16px; }
+  .sheet.open .sheet-inner { display: block; }
+  .sheet-head { display: none; }
+  .bubble-field { grid-template-columns: minmax(0, 1fr); }
+  .bubble:nth-child(even) { transform: none; }
+  .steps { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  .steps::before { top: 26px; bottom: 60px; left: 25px; right: auto; border-top: 0; border-left: 2px dashed #C9C6EA; }
+  .step { grid-template-columns: 52px minmax(0, 1fr); padding-right: 0; column-gap: 16px; }
+  .step > :not(.step-n) { grid-column: 2; }
+  .step-n { grid-row: span 3; }
+  .doc-row { grid-template-columns: minmax(0, 1fr) auto; }
+  .doc-row dt { grid-column: 1 / -1; }
+  .final-band { grid-template-columns: minmax(0, 1fr); }
+  .final-mascot { width: 120px; position: absolute; right: 12px; top: -10px; opacity: .9; }
+  .final-band h2 { padding-right: 90px; }
+}
+</style>
+
+<!-- 임시 마스코트: 비대칭 곡선의 추상 생명체 (최종 디자인 아님) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <radialGradient id="dotoBody" cx="38%" cy="32%" r="75%">
+      <stop offset="0" stop-color="#8A7EFF"/>
+      <stop offset=".55" stop-color="#5848F5"/>
+      <stop offset="1" stop-color="#3A2DCC"/>
+    </radialGradient>
+    <symbol id="doto" viewBox="-12 -24 224 236">
+      <ellipse cx="96" cy="200" rx="56" ry="7" fill="#212033" opacity=".12"/>
+      <path d="M58 168c-4 12-2 22 8 24s16-6 14-18" fill="#3A2DCC"/>
+      <path d="M118 172c0 12 6 20 15 18s11-12 6-22" fill="#3A2DCC"/>
+      <path d="M110 26c4-18 16-30 32-30" fill="none" stroke="#212033" stroke-width="4.5" stroke-linecap="round"/>
+      <circle cx="146" cy="-6" r="11" fill="#C7F46B" stroke="#212033" stroke-width="3"/>
+      <path d="M104 22c32 1 62 22 70 56 8 34-4 70-32 88-26 16-62 17-88 3-27-15-40-46-33-77 5-27 21-48 44-61 12-7 25-10 39-9z" fill="url(#dotoBody)"/>
+      <path d="M36 112c-18-8-32 0-30 16" fill="none" stroke="#5848F5" stroke-width="15" stroke-linecap="round"/>
+      <ellipse cx="152" cy="138" rx="15" ry="11" fill="#C7F46B" transform="rotate(-20 152 138)"/>
+      <ellipse cx="140" cy="154" rx="5" ry="4" fill="#C7F46B"/>
+      <ellipse cx="74" cy="56" rx="22" ry="10" fill="#fff" opacity=".18" transform="rotate(-25 74 56)"/>
+      <g class="eye"><circle cx="86" cy="88" r="23" fill="#fff"/><circle cx="93" cy="92" r="11" fill="#212033"/><circle cx="97" cy="87" r="3.5" fill="#fff"/></g>
+      <g class="eye"><circle cx="137" cy="80" r="13" fill="#fff"/><circle cx="141" cy="83" r="6" fill="#212033"/><circle cx="143" cy="80" r="2" fill="#fff"/></g>
+      <ellipse cx="62" cy="122" rx="10" ry="6" fill="#FF79B3" opacity=".9"/>
+      <path d="M100 124q12 11 24 -1" fill="none" stroke="#212033" stroke-width="4" stroke-linecap="round"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="nav" id="nav">
+  <div class="wrap nav-in">
+    <a class="logo" href="#top" aria-label="도토 홈"><svg aria-hidden="true"><use href="#doto"/></svg>doto<span>.</span></a>
+    <nav class="nav-links" aria-label="페이지 내 이동">
+      <a href="#how">이용 방법</a>
+      <a href="#result">요청서 예시</a>
+      <a href="#match">제작자 연결</a>
+      <a href="#faq">자주 묻는 질문</a>
+    </nav>
+    <div class="nav-right">
+      <a class="nav-creator" href="#creator">작가이신가요? <b>작가용 도토 →</b></a>
+      <a class="btn btn-primary" href="#start">상담 시작</a>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+  <!-- 01 히어로 -->
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <div class="eyebrow">버튜버 · 3D 캐릭터 제작 상담</div>
+        <h1>만들고 싶은 캐릭터는 있는데, <em>어디서부터 시작해야 할지</em> 모르겠다면?</h1>
+        <p class="sub">도토에게 만들고 싶은 캐릭터를 이야기해 보세요. AI가 필요한 질문을 통해 제작 내용을 정리하고, 예상 견적과 제작 요청서까지 만들어 드려요.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#start">AI 제작 상담 시작하기 <span class="arrow">→</span></a>
+          <a class="btn btn-ghost" href="#result">요청서 예시 보기</a>
+        </div>
+        <div class="hero-note"><span>가입 없이 바로 시작</span><span>제작 용어 몰라도 괜찮아요</span></div>
+        <div class="hero-art" aria-hidden="true">
+          <svg class="mascot-hero"><use href="#doto"/></svg>
+          <div class="speech">어떤 캐릭터 만들 거예요? 나 궁금해!</div>
+          <div class="works">
+            <div class="work">작가 작품<br>이미지 자리</div>
+            <div class="work">작가 작품<br>이미지 자리</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="demo" role="region" aria-label="AI 상담 예시 화면">
+        <div class="demo-bar">
+          <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
+          <div class="demo-title">도토 제작 상담</div>
+          <div class="demo-badge">상담 예시</div>
+        </div>
+        <div class="demo-body">
+          <div class="chat">
+            <div class="chat-log" id="chatLog" aria-live="polite"></div>
+            <button class="replay" id="replay" type="button">↻ 처음부터 다시 보기</button>
+            <div class="chat-input" aria-hidden="true"><div>자유롭게 입력하거나 선택지를 눌러요</div><button tabindex="-1">↑</button></div>
+          </div>
+          <aside class="sheet" id="sheet">
+            <button class="sheet-toggle" id="sheetToggle" type="button" aria-expanded="false" aria-controls="sheetInner">
+              <span>실시간 요청서 · <span id="countM">0</span>개 항목 정리됨</span><span class="chev">▾</span>
+            </button>
+            <div class="sheet-inner" id="sheetInner">
+              <div class="sheet-head"><h4>실시간 제작 요청서</h4><span class="sheet-count"><span id="count">0</span>/7 정리됨</span></div>
+              <div id="fields"></div>
+              <div class="quote" id="quote">
+                <div class="quote-k"><span>AI 예상 가격 범위</span><span>예시 금액</span></div>
+                <div class="quote-v" id="quoteV">— 만 원</div>
+                <div class="quote-n">실제 금액은 작가가 요청서를 보고 제안해요</div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 문제 공감 -->
+  <section aria-labelledby="worry-h">
+    <div class="wrap">
+      <div class="worries">
+        <div class="sec-head">
+          <div class="eyebrow">이런 고민, 해보셨죠</div>
+          <h2 class="h2" id="worry-h">의뢰하려고 보니,<br>모르는 것투성이예요</h2>
+          <p class="lead">작가에게 문의하기 전부터 막히는 질문들. 하나라도 해당된다면 도토가 같이 정리해 드릴게요.</p>
+        </div>
+        <div class="bubble-field">
+          <div class="bubble"><span class="k">방식</span><q>2D로 할까, 3D로 할까?</q><p>방송 스타일에 따라 맞는 방식이 달라요.</p></div>
+          <div class="bubble"><span class="k">작업 범위</span><q>모델링이랑 리깅은 뭐가 다르지?</q><p>어디까지 맡겨야 움직이는 캐릭터가 되는지 헷갈려요.</p></div>
+          <div class="bubble"><span class="k">추가 비용</span><q>표정 하나 늘리면 얼마나 더 들지?</q><p>옵션마다 견적이 왜 달라지는지 알기 어려워요.</p></div>
+          <div class="bubble"><span class="k">예산</span><q>이 정도면 적정한 예산일까?</q><p>너무 적게 부를까, 너무 많이 낼까 걱정돼요.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 해결 과정 -->
+  <section id="how" aria-labelledby="how-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="eyebrow">이렇게 진행돼요</div>
+        <h2 class="h2" id="how-h">어려운 제작 용어는 몰라도 돼요.</h2>
+        <p class="lead">아는 만큼만 이야기하면, 필요한 질문은 도토가 해요. 모르는 건 ‘잘 모르겠어요’를 눌러도 상담이 이어져요.</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n">01</div>
+          <h3>아이디어를 이야기해요</h3>
+          <p>떠오르는 대로 편하게 말해 주세요. 한 줄이어도 괜찮아요.</p>
+          <div class="eg">“고양이 귀 달린 방송용 캐릭터 만들고 싶어요”</div>
+        </div>
+        <div class="step">
+          <div class="step-n">02</div>
+          <h3>필요한 내용을 구체화해요</h3>
+          <p>방식, 작업 범위, 표정 수, 예산을 선택지와 함께 하나씩 물어봐요.</p>
+          <div class="eg">2D(Live2D) · 표정 6종 · 예산 100~200만 원</div>
+        </div>
+        <div class="step">
+          <div class="step-n">03</div>
+          <h3>의뢰 준비 끝</h3>
+          <p>제작 요청서와 예상 가격 범위가 완성돼요. 작가에게 그대로 보여줄 수 있어요.</p>
+          <div class="eg">요청서 1장 + 예상 견적 + 추가 확인 항목</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 결과물 -->
+  <section id="result" aria-labelledby="result-h" style="padding-top:24px">
+    <div class="wrap result-grid">
+      <div>
+        <div class="sec-head" style="margin-bottom:0">
+          <div class="eyebrow">상담이 끝나면 받는 것</div>
+          <h2 class="h2" id="result-h">막연한 아이디어가<br>제작 요청서가 됩니다.</h2>
+          <p class="lead">무엇이 정해졌고, 무엇을 더 확인해야 하는지 한눈에 보여요. 작가와 처음 이야기할 때 같은 설명을 반복하지 않아도 돼요.</p>
+        </div>
+        <div class="legend">
+          <div><span class="tag tag-ok">확정</span><span>상담에서 직접 답한 내용</span></div>
+          <div><span class="tag tag-guess">가정</span><span>답변을 바탕으로 AI가 추천한 내용. 바꿀 수 있어요.</span></div>
+          <div><span class="tag tag-check">확인 필요</span><span>작가와 이야기하기 전에 정하면 좋은 내용</span></div>
+        </div>
+      </div>
+
+      <article class="doc" aria-label="샘플 제작 요청서">
+        <div class="doc-top">
+          <small>DOTO · 제작 요청서</small>
+          <h3>고양이 귀 버튜버 제작 요청서</h3>
+          <span class="doc-stamp">샘플</span>
+        </div>
+        <dl class="doc-rows">
+          <div class="doc-row"><dt>제작 목적</dt><dd>개인 방송(게임·잡담)용 버튜버 데뷔</dd><span class="tag tag-ok">확정</span></div>
+          <div class="doc-row"><dt>캐릭터 컨셉</dt><dd>고양이 귀가 있는 밝은 성격의 여자 캐릭터</dd><span class="tag tag-ok">확정</span></div>
+          <div class="doc-row"><dt>스타일</dt><dd>파스텔 톤, 애니메이션풍 일러스트</dd><span class="tag tag-guess">가정</span></div>
+          <div class="doc-row"><dt>제작 방식</dt><dd>2D · Live2D (상반신 중심)</dd><span class="tag tag-ok">확정</span></div>
+          <div class="doc-row"><dt>작업 범위</dt><dd>캐릭터 일러스트, 파츠 분리, Live2D 리깅</dd><span class="tag tag-guess">가정</span></div>
+          <div class="doc-row"><dt>표정</dt><dd>기본 포함 6종 내외</dd><span class="tag tag-ok">확정</span></div>
+          <div class="doc-row"><dt>예산</dt><dd>100~200만 원</dd><span class="tag tag-ok">확정</span></div>
+          <div class="doc-row"><dt>희망 일정</dt><dd>데뷔 목표일 미정</dd><span class="tag tag-check">확인 필요</span></div>
+          <div class="doc-row"><dt>참고 자료</dt><dd>원하는 분위기의 레퍼런스 이미지</dd><span class="tag tag-check">확인 필요</span></div>
+        </dl>
+        <div class="doc-quote">
+          <div class="row1"><span class="label">AI 예상 가격 범위 <span class="memo">예시 금액</span></span><span class="price">130~190만 원</span></div>
+          <details>
+            <summary>작업별 비용과 산정 근거 보기</summary>
+            <div class="breakdown">
+              <div><span>캐릭터 일러스트</span><span>60~80만</span><small>상반신 기준, 의상 1벌</small></div>
+              <div><span>파츠 분리</span><span>15~25만</span><small>리깅을 위해 눈·입·머리카락 등을 레이어로 나누는 작업</small></div>
+              <div><span>Live2D 리깅</span><span>45~70만</span><small>고개 돌리기, 눈 깜빡임, 립싱크 포함</small></div>
+              <div><span>표정 추가 (6종)</span><span>10~15만</span><small>표정이 늘수록 리깅 작업이 늘어나요</small></div>
+            </div>
+          </details>
+          <p class="fine">AI 예상 견적은 참고용이에요. 실제 금액과 납기는 작가가 요청서를 보고 따로 제안해요.</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- 05 매칭 -->
+  <section id="match" aria-labelledby="match-h" style="padding-top:24px">
+    <div class="wrap">
+      <div class="match">
+        <div class="match-grid">
+          <div>
+            <div class="sec-head" style="margin-bottom:28px">
+              <div class="eyebrow">요청서가 완성됐다면</div>
+              <h2 class="h2" id="match-h">이제 제작자를<br>찾을 차례예요.</h2>
+              <p class="lead">바로 제작할지, 더 알아볼지는 직접 정해요. 준비됐을 때만 제작자 연결을 신청하면 돼요.</p>
+            </div>
+            <div class="intent" aria-label="제작 의향 질문 예시">
+              <p>제작은 언제쯤 시작하고 싶으세요?</p>
+              <div class="intent-opt ready"><div><b>바로 시작하고 싶어요</b><br><span>한 달 안에 작업을 맡기고 싶어요</span></div><div class="to">맞춤 연결<br>신청 →</div></div>
+              <div class="intent-opt"><div><b>아직 알아보는 중이에요</b><br><span>견적과 범위만 먼저 알고 싶어요</span></div><div class="to">결과<br>저장 →</div></div>
+            </div>
+          </div>
+          <div>
+            <ol class="flow">
+              <li><div><h3>제작자 연결 신청 <span class="who">의뢰인</span></h3><p>요청서를 저장하고 연결을 신청해요. 이때 회원가입을 해요.</p></div></li>
+              <li><div><h3>요청서에 맞는 작가 찾기 <span class="who">도토 담당자</span></h3><p>지금은 도토 담당자가 요청서를 직접 읽고, 작업 방식과 스타일이 맞는 작가를 찾아요.</p></div></li>
+              <li><div><h3>작가의 실제 견적·납기 제안 <span class="who">작가</span></h3><p>작가가 요청서를 검토하고 실제 금액과 작업 기간을 제안해요.</p></div></li>
+              <li><div><h3>제안 확인 후 수락 여부 결정 <span class="who">의뢰인</span></h3><p>내 프로젝트에서 요청서, 예상 견적, 작가 제안을 함께 보고 결정해요.</p></div></li>
+            </ol>
+            <div class="callout"><b>!</b><span>제안을 수락해도 바로 계약이나 결제가 되지 않아요. 계약 방식은 작가와 따로 정해요. <span class="memo">정책 확정 필요</span></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 FAQ -->
+  <section id="faq" aria-labelledby="faq-h">
+    <div class="wrap faq-grid">
+      <div class="sec-head">
+        <div class="eyebrow">자주 묻는 질문</div>
+        <h2 class="h2" id="faq-h">시작하기 전에<br>궁금한 것들</h2>
+      </div>
+      <div class="faq">
+        <details open>
+          <summary>상담하려면 가입해야 하나요? 비용이 드나요?</summary>
+          <div class="a"><p>가입 없이 바로 상담을 시작할 수 있어요. 상담 결과를 저장하거나 제작자 연결을 신청할 때 가입해요.</p><p><span class="memo">확정 필요</span> 상담 비용과 무료 이용 범위 문구는 정책 확정 후 작성</p></div>
+        </details>
+        <details>
+          <summary>AI 예상 견적과 실제 가격은 왜 다른가요?</summary>
+          <div class="a"><p>예상 견적은 비슷한 작업 범위를 기준으로 계산한 참고 범위예요. 실제 금액은 작가의 경력, 작업 난이도, 일정에 따라 달라지고, 작가가 요청서를 보고 직접 제안해요.</p></div>
+        </details>
+        <details>
+          <summary>상담을 받으면 꼭 의뢰해야 하나요?</summary>
+          <div class="a"><p>아니요. 요청서와 예상 견적만 확인하고 끝내도 돼요. 작가 제안을 받은 뒤에도 수락할지는 직접 결정해요.</p></div>
+        </details>
+        <details>
+          <summary>제 아이디어와 개인정보는 어떻게 관리되나요?</summary>
+          <div class="a"><p>상담 내용은 요청서 작성과 제작자 연결에만 사용해요.</p><p><span class="memo">확정 필요</span> 비회원 상담 기록 보관 기간, 작가에게 공개되는 범위, 삭제 방법 정리 후 작성</p></div>
+        </details>
+        <details>
+          <summary>어떤 제작을 상담할 수 있나요?</summary>
+          <div class="a"><p>지금은 버튜버(2D·Live2D)와 3D 캐릭터 제작 상담에 집중하고 있어요.</p></div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 최종 CTA -->
+  <section class="final" id="start" aria-labelledby="final-h">
+    <div class="wrap">
+      <div class="final-band">
+        <div>
+          <h2 id="final-h">당신이 만들고 싶은 캐릭터, 도토에게 먼저 이야기해 보세요.</h2>
+          <p>가입 없이 바로 시작해요. 끝나면 요청서와 예상 견적이 남아요.</p>
+          <a class="btn btn-lime" href="#top">내 캐릭터 제작 상담 시작하기 <span class="arrow">→</span></a>
+        </div>
+        <svg class="final-mascot" aria-hidden="true"><use href="#doto"/></svg>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <span><b style="color:var(--ink);font-family:var(--f-display);font-weight:900">doto.</b> 아이디어와 제작자 사이</span>
+    <span>/request 시안 v1 · 2026.10.28 · 카피·금액·정책은 검증 전 기획안</span>
+  </div>
+</footer>
+
+<script>
+(() => {
+  const FIELDS = [
+    ["use", "용도"], ["concept", "캐릭터 컨셉"], ["type", "제작 방식"],
+    ["scope", "작업 범위"], ["face", "표정"], ["budget", "예산"], ["date", "희망 일정"]
+  ];
+  const TAG = { ok: ["tag-ok", "확정"], guess: ["tag-guess", "가정"], check: ["tag-check", "확인 필요"] };
+  const SCRIPT = [
+    { ai: "안녕하세요, 도토 상담이에요. 만들고 싶은 캐릭터를 편하게 이야기해 주세요." },
+    { user: "방송용 버튜버를 만들고 싶어요. 고양이 귀가 있는 여자 캐릭터요." },
+    { set: [["use", "개인 방송용 버튜버", "ok"], ["concept", "고양이 귀 소녀", "ok"]] },
+    { ai: "좋아요! 2D로 움직이는 방식과 3D 모델 중 어느 쪽을 생각하세요?" },
+    { chips: ["2D (Live2D)", "3D 모델", "잘 모르겠어요"], pick: 2 },
+    { ai: "괜찮아요. 상반신 위주로 방송하면 2D, 전신으로 움직이거나 VR 방송을 하면 3D가 잘 맞아요." },
+    { user: "상반신 방송이라 2D면 될 것 같아요." },
+    { set: [["type", "2D · Live2D", "ok"], ["scope", "일러스트 + 파츠 분리 + 리깅", "guess"]] },
+    { ai: "표정은 몇 개 정도 필요할까요? 표정이 늘면 리깅 작업도 함께 늘어나요." },
+    { chips: ["기본 표정만", "5~6개", "잘 모르겠어요"], pick: 1 },
+    { set: [["face", "6종 내외", "ok"]] },
+    { ai: "생각해 둔 예산이 있으세요?" },
+    { chips: ["100만 원 이하", "100~200만 원", "아직 모르겠어요"], pick: 1 },
+    { set: [["budget", "100~200만 원", "ok"], ["date", "미정", "check"]] },
+    { ai: "정리됐어요! 요청서에서 예상 견적을 확인해 보세요. 희망 일정은 나중에 정해도 돼요." },
+    { quote: "130~190만 원" }
+  ];
+
+  const log = document.getElementById("chatLog");
+  const fieldsEl = document.getElementById("fields");
+  const quote = document.getElementById("quote");
+  const quoteV = document.getElementById("quoteV");
+  const count = document.getElementById("count");
+  const countM = document.getElementById("countM");
+  const replay = document.getElementById("replay");
+  const sheet = document.getElementById("sheet");
+  const toggle = document.getElementById("sheetToggle");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let run = 0;
+
+  const wait = ms => new Promise(r => setTimeout(r, reduce ? 0 : ms));
+  const scrollDown = () => { log.scrollTop = log.scrollHeight; };
+
+  function resetSheet() {
+    fieldsEl.innerHTML = FIELDS.map(([k, label]) =>
+      `<div class="field" data-k="${k}"><div class="field-k"><span>${label}</span><span class="st"></span></div><div class="field-v empty">대화하면 채워져요</div></div>`
+    ).join("");
+    quote.classList.remove("on");
+    quoteV.textContent = "— 만 원";
+    setCount(0);
+  }
+  function setCount(n) { count.textContent = n; countM.textContent = n; }
+
+  function bubble(cls, text) {
+    const el = document.createElement("div");
+    el.className = "msg " + cls;
+    el.textContent = text;
+    log.appendChild(el);
+    scrollDown();
+    return el;
+  }
+
+  async function play() {
+    const id = ++run;
+    log.innerHTML = "";
+    replay.classList.remove("show");
+    resetSheet();
+    let filled = 0;
+    for (const step of SCRIPT) {
+      if (id !== run) return;
+      if (step.ai) {
+        const t = document.createElement("div");
+        t.className = "msg ai typing";
+        t.innerHTML = "<i></i><i></i><i></i>";
+        log.appendChild(t); scrollDown();
+        await wait(900);
+        if (id !== run) return;
+        t.remove();
+        bubble("ai", step.ai);
+        await wait(900);
+      } else if (step.user) {
+        await wait(500);
+        bubble("user", step.user);
+        await wait(700);
+      } else if (step.chips) {
+        const box = document.createElement("div");
+        box.className = "chips";
+        box.innerHTML = step.chips.map(c => `<span class="chip${c.includes("모르") ? " idk" : ""}">${c}</span>`).join("");
+        log.appendChild(box); scrollDown();
+        await wait(1100);
+        if (id !== run) return;
+        box.children[step.pick].classList.add("picked");
+        await wait(600);
+      } else if (step.set) {
+        for (const [k, v, st] of step.set) {
+          const f = fieldsEl.querySelector(`[data-k="${k}"]`);
+          const vEl = f.querySelector(".field-v");
+          vEl.textContent = v; vEl.classList.remove("empty");
+          f.querySelector(".st").innerHTML = `<span class="tag ${TAG[st][0]}">${TAG[st][1]}</span>`;
+          f.classList.remove("fresh"); void f.offsetWidth; f.classList.add("fresh");
+          setCount(++filled);
+          await wait(350);
+        }
+        await wait(300);
+      } else if (step.quote) {
+        quoteV.textContent = step.quote;
+        quote.classList.add("on");
+        if (window.innerWidth <= 720 && !sheet.classList.contains("open")) openSheet(true);
+        await wait(600);
+      }
+    }
+    replay.classList.add("show");
+    scrollDown();
+  }
+
+  function openSheet(on) {
+    sheet.classList.toggle("open", on);
+    toggle.setAttribute("aria-expanded", String(on));
+  }
+  toggle.addEventListener("click", () => openSheet(!sheet.classList.contains("open")));
+  replay.addEventListener("click", () => { openSheet(false); play(); });
+
+  // 화면에 보일 때 재생 시작
+  const demo = document.querySelector(".demo");
+  let started = false;
+  const start = () => { if (!started) { started = true; play(); } };
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver((es, ob) => { if (es.some(e => e.isIntersecting)) { start(); ob.disconnect(); } }, { threshold: .3 }).observe(demo);
+  } else start();
+  resetSheet();
+  bubble("ai", SCRIPT[0].ai);
+
+  const nav = document.getElementById("nav");
+  addEventListener("scroll", () => nav.classList.toggle("scrolled", scrollY > 8), { passive: true });
+})();
+</script>
