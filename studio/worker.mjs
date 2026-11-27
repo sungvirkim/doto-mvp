@@ -1,3 +1,4 @@
+import { showcaseVideo } from '../api/youtube.mjs';
 import { assets } from './assets.mjs';
 import { generateDraft, verifyGeminiKey } from '../api/draft.mjs';
 import { sampleProducts } from './samples.mjs';
@@ -50,7 +51,7 @@ async function handle(req,env) {
     const [type,content]=assets[path];
     const binary=type==='image/webp';
     const body=binary?Uint8Array.from(atob(content),c=>c.charCodeAt(0)):content;
-    return new Response(body,{headers:{'Content-Type':type,'X-Content-Type-Options':'nosniff',...(binary?{'Cache-Control':'private, max-age=86400'}:{})}});
+    return new Response(body,{headers:{'Content-Type':type,'X-Content-Type-Options':'nosniff','Cache-Control':binary?'private, max-age=86400':'no-cache'}});
   }
   if(!path.startsWith('/api/'))return new Response('Not found',{status:404});
   const user=req.headers.get('oai-authenticated-user-id');
@@ -82,7 +83,9 @@ async function handle(req,env) {
     if(d.id&&(!old||(await old.json()).owner!==user))fail(403,'내 상품만 수정할 수 있어요.');
     const offered=d.methods??[];
     if(!Array.isArray(offered)||offered.length>4||offered.some(m=>!['아바타 커스텀','얼굴 성형','오리지널 얼굴 제작','오리지널 전신 제작'].includes(m)))fail(400,'제공하는 제작 방식을 확인해 주세요.');
-    const p={methods:[...new Set(offered)],id,owner:user,artist:str(d.artist,60),title:str(d.title,100),desc:str(d.desc),base:money(d.base),option:str(d.option,60),extra:money(d.extra??0),options:readOptions(d),days:Number(d.days),start:date(d.start),recommend:d.recommend===true,direct:d.direct===true,img:photo(d.img)};
+    const video=showcaseVideo(d.showcaseUrl);
+    if(d.showcaseUrl && !video)fail(400,'유튜브 영상의 공유 링크를 확인해 주세요.');
+    const p={showcaseUrl:video?.url||'',methods:[...new Set(offered)],id,owner:user,artist:str(d.artist,60),title:str(d.title,100),desc:str(d.desc),base:money(d.base),option:str(d.option,60),extra:money(d.extra??0),options:readOptions(d),days:Number(d.days),start:date(d.start),recommend:d.recommend===true,direct:d.direct===true,img:photo(d.img)};
     if(!p.artist||!p.title||!p.desc||!Number.isInteger(p.days)||p.days<1||p.days>730)fail(400,'작가명·상품명·작업 설명·기간을 확인해 주세요.');
     if(!await bucket.put('products/'+id,JSON.stringify(p),old?{onlyIf:{etagMatches:old.etag}}:{}))fail(409,'상품이 변경됐어요. 다시 열어주세요.');
     return json({id});

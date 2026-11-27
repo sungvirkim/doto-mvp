@@ -23,6 +23,12 @@ test('a client requests two estimates, answers a question and selects one artist
   const a=visitor(), b=visitor(), client=visitor(), stranger=visitor();
   const product={artist:'테스트 작가',title:'버추얼 얼굴 커스텀',desc:'기존 모델 얼굴 커스텀과 VRM 세팅',base:200000,option:'표정',extra:20000,days:5,start:'',recommend:true,direct:true};
   const p=(await a('product',product)).id, other=(await b('product',product)).id;
+  const short='https://youtu.be/9hE5-98ZeCg?si=share';
+  await a('product',{...product,id:p,showcaseUrl:short});
+  assert.equal((await client('state')).products.find(item=>item.id===p).showcaseUrl,'https://www.youtube.com/watch?v=9hE5-98ZeCg');
+  await a('product',{...product,id:p,showcaseUrl:'https://youtube.com/@artist'},400);
+  await a('product',{...product,id:p,showcaseUrl:''});
+  assert.equal((await a('state')).products.find(item=>item.id===p).showcaseUrl,'');
   const image='data:image/png;base64,iVBORw0KGgo=';
   const payload={ids:[p,other],description:'첫 방송용 아바타',details:'제작 방식 · 얼굴 성형',img:image,moreImages:[image],quantity:{[p]:2},estimates:{[p]:240000,[other]:200000},deadline:'2027-05-01',budget:300000};
   await client('request',{...payload,estimates:{}},409);
@@ -64,7 +70,7 @@ test('a client requests two estimates, answers a question and selects one artist
     assert.equal(bytes.subarray(8,12).toString(),'WEBP');
   }
   await client('gemini-check',{},400);
-  for(const path of ['/','/studio','/studio.js','/studio.css','/consult.js','/doto.svg']) assert.equal((await fetch(origin+path)).status,200);
+  for(const path of ['/','/studio','/studio.js','/studio.css','/consult.js','/youtube.mjs','/doto.svg']) assert.equal((await fetch(origin+path)).status,200);
 });
 
 test('a personal Gemini key is checked against the draft model without inviting a generation', async t=>{
@@ -79,4 +85,69 @@ test('a personal Gemini key is checked against the draft model without inviting 
   assert.deepEqual(await verifyGeminiKey(mockKey),{status:200,body:{connected:true}});
   provider.mock.mockImplementation(async()=>new Response('',{status:403}));
   assert.equal((await verifyGeminiKey(mockKey)).status,400);
+});
+
+test('public showcase links are canonical video inputs and work without a description',async t=>{
+  const {showcaseVideo}=await import('../api/youtube.mjs');
+  const {generateDraft}=await import('../api/draft.mjs');
+  const id='9hE5-98ZeCg',url='https://www.youtube.com/watch?v='+id;
+  for(const link of [url,'youtu.be/'+id+'?t=15','https://m.youtube.com/shorts/'+id,'https://www.youtube.com/live/'+id]){
+    assert.deepEqual(showcaseVideo(link),{id,url});
+  }
+  for(const link of ['https://www.youtube.com/@artist','https://youtu.be.example/'+id,'https://user@youtube.com/watch?v='+id,'https://www.youtube.com/playlist?list=123']){
+    assert.equal(showcaseVideo(link),null);
+  }
+  const google=t.mock.method(globalThis,'fetch',async(_,request)=>{
+    const parts=JSON.parse(request.body).contents[0].parts;
+    assert.deepEqual(parts[0],{fileData:{fileUri:url,mimeType:'video/mp4'}});
+    const text=JSON.stringify({title:'표정 제작',draft:'눈물 표정',options:['하트눈'],scenes:[{seconds:8,observation:'눈동자가 하트로 바뀐다.'}]});
+    return Response.json({candidates:[{finishReason:'STOP',content:{parts:[{text}]}}]});
+  });
+  const input={mode:'portfolio',description:'',approved:true,showcaseUrl:'https://youtu.be/'+id};
+  assert.equal((await generateDraft({...input,approved:false},'test')).status,400);
+  assert.equal((await generateDraft({...input,mode:'request'},'test')).status,400);
+  assert.equal((await generateDraft({...input,showcaseUrl:'invalid'},'test')).status,400);
+  assert.equal(google.mock.callCount(),0);
+  const {body}=await generateDraft(input,'test');
+  assert.deepEqual(body.options,['하트눈']);
+  assert.equal(body.scenes[0].seconds,8);
+  google.mock.mockImplementation(async()=>Response.json({candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify({title:'추정',draft:'추정',options:['추정'],scenes:[]})}]}}]}));
+  assert.equal((await generateDraft(input,'test')).status,422);
+  google.mock.mockImplementation(async()=>new Response('',{status:400}));
+  assert.match((await generateDraft(input,'test')).body.error,/전체 공개/);
+});
+
+test('pasting a showcase starts analysis and connecting a key resumes a waiting clip once',async()=>{
+  const {videoAnalysis}=await import('./video-analysis.js');
+  let connected=false;
+  const jobs=[],reports=[];
+  const controller=videoAnalysis({connected:()=>connected,
+    analyze:(clip,signal)=>new Promise((resolve,reject)=>jobs.push({clip,signal,resolve,reject})),
+    report:(stage,value)=>reports.push([stage,value])});
+  const clip={id:'first'},next={id:'next'};
+  controller.select(clip);
+  assert.equal(reports.at(-1)[0],'connect');
+  assert.equal(jobs.length,0);
+  connected=true;
+  controller.connectionChanged();
+  controller.select(clip);
+  void controller.start();
+  assert.equal(jobs.length,1);
+  controller.select(next);
+  assert.equal(jobs[0].signal.aborted,true);
+  jobs[0].resolve('old');
+  jobs[1].resolve('new');
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.deepEqual(reports.filter(([stage])=>stage==='done'),[['done','new']]);
+  controller.enable(false);
+  controller.select(clip);
+  assert.equal(jobs.length,2);
+  controller.enable(true);
+  jobs[2].reject(Error('공개 설정 확인'));
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.deepEqual(reports.at(-1),['error','공개 설정 확인']);
+  const retry=controller.start();
+  jobs[3].resolve('retried');
+  await retry;
+  assert.deepEqual(reports.at(-1),['done','retried']);
 });
